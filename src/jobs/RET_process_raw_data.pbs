@@ -1,0 +1,25 @@
+#!/bin/bash
+#PBS -N tst_prc_raw
+#PBS -l nodes=1:ppn=10
+#PBS -l pmem=4gb
+#PBS -l walltime=02:00:00
+#PBS -A open
+#PBS -j oe
+
+# Loading modules
+module purge
+module load r/3.4
+module load gcc
+module use /gpfs/group/dml129/default/sw/modules
+module load netcdf/4.7.1-gcc7.3.1
+
+# Go to the directory
+cd  /gpfs/scratch/htn5098/DataAnalysis/testing/testing_RET_calculation/ #$PBS_O_WORKDIR 
+
+echo "Job started on `hostname` at `date`"
+
+# Run the job
+#R --file=../Rcodes/test_loop.R
+Rscript ./src/Rcodes/RET_processing_rawdata.R "./data/raw/force_SERC_8th.1979_2016.nc" "tasmax" "historical"
+
+echo "Job ended at `date`"

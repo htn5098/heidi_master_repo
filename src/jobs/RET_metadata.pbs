@@ -1,0 +1,23 @@
+#!/bin/bash
+#PBS -N tst_prc_raw
+#PBS -l nodes=1:ppn=1
+#PBS -l walltime=02:00:00
+#PBS -A open
+#PBS -j oe
+
+# Loading modules
+module purge
+module load r/3.4
+module load gcc
+module use /gpfs/group/dml129/default/sw/modules
+module load netcdf/4.7.1-gcc7.3.1
+
+# Go to the directory
+cd $PBS_O_WORKDIR
+
+echo "Job started on `hostname` at `date`"
+
+# Run the job
+Rscript ../Rcodes/RET_metadata_climate.R "https://drive.google.com/open?id=1gCc3nSTo1BxVFIfDBReeBpZiEDj0maqr" control
+
+echo "Job ended at `date`"
