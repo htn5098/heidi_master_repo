@@ -7,9 +7,9 @@ var = ['tasmax','tasmin','rh_max','rh_min','shortwave','wind_speed']
 
 for y in var:
   if y == 'wind_speed':
-    file = "./data/raw/wind_SERC_8th.1979_2016.nc"
+    file = "/storage/home/htn5098/scratch/DataAnalysis/data/raw/wind_SERC_8th.1979_2016.nc"
   else:
-    file = "./data/raw/force_SERC_8th.1979_2016.nc"
+    file = "/storage/home/htn5098/scratch/DataAnalysis/data/raw/force_SERC_8th.1979_2016.nc"
   print(y)
   print(file)
   print('\n')   
@@ -39,7 +39,7 @@ module use /gpfs/group/dml129/default/sw/modules
 module load netcdf/4.7.1-gcc7.3.1
 
 ## Running script     
-cd  /gpfs/scratch/htn5098/DataAnalysis/testing/testing_RET_calculation/ # going to the working directory
+cd  /storage/work/h/htn5098/DataAnalysis/ # going to the working directory
 echo $PBS_JOBID
 echo "### Starting at: $(date) ###"
 Rscript ./src/Rcodes/RET_processing_rawdata.R %s %s historical 
