@@ -1,7 +1,7 @@
 .libPaths("/storage/home/htn5098/local_lib/R35") # needed for calling packages
 .libPaths()
 library(dplyr)
-setwd("/gpfs/scratch/htn5098/DataAnalysis/testing/testing_RET_calculation/")
+setwd("/storage/work/h/htn5098/DataAnalysis/") #changing working directory
 SDGridpoints <- read.csv("./data/SDGrid0125sort.txt")
 grid <- unique(SDGridpoints$Grid)
 SDCoordElevation <- read.csv("./data/SDElevation.csv")
@@ -10,7 +10,7 @@ el <- SDCoordElevation %>%
   select(c("Grid","Lat","Elev")) %>%
   filter(Grid%in%grid) 
 if (any(rowSums(is.na(el)) == 0)) {
-  write.csv(el,"SDGridElevation.csv",row.names=F)
+  write.csv(el,"./data/SDGridElevation.csv",row.names=F)
 } else {
   print("NA values appear")
 }
