@@ -1,3 +1,4 @@
 /data
 .nc
-*.o*
+out_*.o*
+test*
