@@ -34,12 +34,13 @@ foreach(i = years,.verbose=F,.errorhandling='remove') %dopar% {
   library(ncdf4)
   nc <- nc_open(grep(i,ncfiles,value=T))
   dt <- ncvar_get(nc,varid = names(nc$var),start = c(795,210,1), count = c(391,266,-1))
-  dim <- dim(dt.m) 
+  dim <- dim(dt) 
   dt.m <- aperm(dt, c(3,2,1)) 
   dim(dt.m) <- c(dim[3],dim[2]*dim[1])
-  dt.df <- data.frame(dt.m)
-  colnames(dt.df) <- as.character(indx)
-  write.csv(dt.df,paste0(interim,names(nc$var),'_',i,'.csv'),row.names=F)
+  dt.sd <- dt.m[,indx]
+  dt.df <- data.frame(dt.sd)
+  colnames(dt.df) <- as.character(indx)  
+  write.csv(dt.df,paste0(interim,'gridMET_',names(nc$var),'_',i,'.csv'),row.names=F)
 }
 print("End of extracting")
 
