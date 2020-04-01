@@ -8,20 +8,18 @@
 
 # Loading modules
 module purge
-module load r/3.4
-module load gcc
-module use /gpfs/group/dml129/default/sw/modules
-module load netcdf/4.7.1-gcc7.3.1
 
 # Go to the directory
-cd  /storage/work/h/htn5098/DataAnalysis
+cd  /storage/work/h/htn5098/DataAnalysis/src/jobs
 
 echo "Job started on `hostname` at `date`"
 
+# Creating job files
+
 # Run the job
-one=$(qsub ./jobs/MYW_extract_nc.pbs)
+one=$(qsub MYW_extract_nc.pbs)
 echo $one
-two=$(qsub -W depend=afterok:$one ./jobs/MYW_aggr_data.pbs)
+two=$(qsub -W depend=afterok:$one MYW_aggr_data.pbs)
 echo $two
 
 echo "Job ended at `date`"

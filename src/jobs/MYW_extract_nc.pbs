@@ -19,6 +19,6 @@ cd  /storage/work/h/htn5098/DataAnalysis/
 echo "Job started on `hostname` at `date`"
 
 # Run the job
-Rscript ./src/Rcodes/MYW_extract_nc.R *pdsi_* 2018
+Rscript ./src/Rcodes/MYW_extract_nc.R *pet_* 2018
 
 echo "Job ended at `date`"

@@ -19,6 +19,6 @@ cd  /storage/work/h/htn5098/DataAnalysis/
 echo "Job started on `hostname` at `date`"
 
 # Run the job
-Rscript ./src/Rcodes/MYW_aggr_data.R palmer
+Rscript ./src/Rcodes/MYW_aggr_data.R potential_evapotranspiration county
 
 echo "Job ended at `date`"
