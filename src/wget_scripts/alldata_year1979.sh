@@ -1,4 +1,5 @@
 #!/bin/bash 
+cd /storage/home/htn5098/scratch/DataAnalysis/data/raw
 wget -nc -c -nd http://www.northwestknowledge.net/metdata/data/vpd_1979.nc 
 wget -nc -c -nd http://www.northwestknowledge.net/metdata/data/pr_1979.nc 
 wget -nc -c -nd http://www.northwestknowledge.net/metdata/data/rmin_1979.nc 
