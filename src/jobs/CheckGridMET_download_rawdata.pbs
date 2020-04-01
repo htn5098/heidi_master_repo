@@ -15,6 +15,6 @@ echo "Job started on `hostname` at `date`"
 cd /storage/home/htn5098/work/DataAnalysis/src/wget_scripts
 
 # Run the job
-bash abatz_pdsi_spi_pr.sh
+bash alldata_year1979.sh
 
 echo "Job ended at `date`"
