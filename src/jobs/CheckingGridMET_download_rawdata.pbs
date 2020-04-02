@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N dl_gridMET_data
+#PBS -N out_gMet_cal
 #PBS -l nodes=1:ppn=10
 #PBS -l pmem=4gb
 #PBS -l walltime=02:00:00
@@ -12,9 +12,9 @@ module purge
 echo "Job started on `hostname` at `date`"
 
 # Go to the directory
-cd /storage/home/htn5098/work/DataAnalysis/src/wget_scripts
+cd /storage/home/htn5098/work/DataAnalysis/
 
 # Run the job
-bash alldata_year1979.sh
+R --file=CheckingGridMET_calculation
 
 echo "Job ended at `date`"
