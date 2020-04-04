@@ -29,13 +29,15 @@ invisible(clusterEvalQ(cl,.libPaths("/storage/home/htn5098/local_lib/R35"))) # R
 clusterExport(cl,list('spfile')) #list('var.matrix.sa') expporting data into clusters for parallel processing
 print("Loop for calculating RET")
 library(data.table)
-ETo <- foreach(i = gridpoints,.combine=rbind) %dopar% {
+ETo <- foreach(i = gridpoints[1:10],.combine=cbind) %dopar% {
+  library(Evapotranspiration)
   library(data.table)
+  library(lubridate)
   lat.grid <- spfile$Lat[spfile$Grid==i]
   z.grid <- spfile$Elev[spfile$Grid==i]
   grid = as.character(i)
-  tx = fread(paste0(interim,'gridMET_tmmx.csv'),header=T,select=grid)
-  tn = fread(paste0(interim,'gridMET_tmmn.csv'),header=T,select=grid)
+  tx = fread(paste0(interim,'gridMET_tmmx.csv'),header=T,select=grid) -273.15
+  tn = fread(paste0(interim,'gridMET_tmmn.csv'),header=T,select=grid) -273.15
   rhx = fread(paste0(interim,'gridMET_rmax.csv'),header=T,select=grid)
   rhn = fread(paste0(interim,'gridMET_rmin.csv'),header=T,select=grid)
   Rs = fread(paste0(interim,'gridMET_srad.csv'),header=T,select=grid)*0.0864 #converting from W/m2 to MJ/m2/day

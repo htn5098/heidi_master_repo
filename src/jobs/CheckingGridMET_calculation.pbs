@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N out_gMET_raw
+#PBS -N out_gMET_cal
 #PBS -l nodes=1:ppn=10
 #PBS -l pmem=4gb
 #PBS -l walltime=02:00:00
