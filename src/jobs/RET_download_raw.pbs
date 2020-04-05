@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N dl_drive_data
+#PBS -N out_dl_drive
 #PBS -l nodes=1:ppn=10
 #PBS -l pmem=4gb
 #PBS -l walltime=02:00:00
@@ -11,11 +11,11 @@ module purge
 module load r/3.4
 
 # Go to the directory
-cd  /storage/work/h/htn5098/DataAnalysis/ #$PBS_O_WORKDIR 
+cd  /storage/home/htn5098/work/DataAnalysis #$PBS_O_WORKDIR 
 
 echo "Job started on `hostname` at `date`"
 
 # Run the job
-Rscript ./src/Rcodes/RET_downloading_raw.R "https://drive.google.com/open?id=1SKGPv1Fl27mdP71pMwzkt8gu3-sffuJJ"
+Rscript ./src/Rcodes/RET_downloading_raw.R https://drive.google.com/open?id=1vm_roWupfjavjp7d9-Vaa7NR8IBUfZJk control meta
 
 echo "Job ended at `date`"
