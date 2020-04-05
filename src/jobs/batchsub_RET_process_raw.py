@@ -7,9 +7,9 @@ var = ['tasmax','tasmin','rh_max','rh_min','shortwave','wind_speed']
 
 for y in var:
   if y == 'wind_speed':
-    file = "/storage/home/htn5098/scratch/DataAnalysis/data/raw/wind_SERC_8th.1979_2016.nc"
+    file = "wind_SERC_8th.1979_2016.nc"
   else:
-    file = "/storage/home/htn5098/scratch/DataAnalysis/data/raw/force_SERC_8th.1979_2016.nc"
+    file = "force_SERC_8th.1979_2016.nc"
   print(y)
   print(file)
   print('\n')   
@@ -19,7 +19,7 @@ for y in var:
 # PBS CONFIG
 #-------------------------------------------------------------------------------
 ## Resources
-#PBS -N raw_%s #job name
+#PBS -N out_%s #job name
 #PBS -l nodes=1:ppn=10 # one node and 10 processors
 #PBS -l pmem=4gb # memory per processor, total memory = ppn*pmem 
 #PBS -l walltime=01:00:00 # max time running
@@ -42,7 +42,7 @@ module load netcdf/4.7.1-gcc7.3.1
 cd  /storage/work/h/htn5098/DataAnalysis/ # going to the working directory
 echo $PBS_JOBID
 echo "### Starting at: $(date) ###"
-Rscript ./src/Rcodes/RET_processing_rawdata.R %s %s historical 
+Rscript ./src/Rcodes/RET_processing_rawdata.R %s %s '' historical 
 echo "### Ended at: $(date) ###"
     """%(y,file,y)) # 
   f.close() 

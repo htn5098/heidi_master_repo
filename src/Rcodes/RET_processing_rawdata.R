@@ -1,10 +1,15 @@
-args = commandArgs(trailingOnly=T)
-filename=as.character(args[1])
-var=as.character(args[2])
-period=as.character(args[3])
+inputs = commandArgs(trailingOnly=T)
+filename=as.character(inputs[1])
+var=as.character(inputs[2])
+gcm=as.character(inputs[3])
+period=as.character(inputs[4])
 
 .libPaths("/storage/home/htn5098/local_lib/R35") # needed for calling packages
 .libPaths()
+
+setwd('/storage/home/htn5098/work/DataAnalysis')
+inputpath='/storage/home/htn5098/scratch/DataAnalysis/data/raw/UW_clim/historical/' # where .nc files are
+interim='/storage/home/htn5098/scratch/DataAnalysis/data/interim/' #where to put .csv files for next step
 
 library(ncdf4)
 library(data.table)
@@ -20,11 +25,11 @@ registerDoParallel(cl)
 
 # Reading the .nc file 
 print("Reading nc file")
-nc.file <- nc_open(filename) #
+nc.file <- nc_open(paste0(inputpath,filename)) #
 
 # Reading supporting files
 print("Reading supporting files")
-coord_se <- read.table('./data/SDGrid0125sort.txt', sep = ',', header = T) # File contains information about grid index
+coord_se <- read.table('./data/external/SDGrid0125sort.txt', sep = ',', header = T) # File contains information about grid index
 indx = sort(unique(coord_se$Grid)) # index numbers of grids in the study area
 
 # Extracting data from array to matrix
@@ -42,18 +47,16 @@ var.matrix.sa[,indx_NA] <- 0 # eliminating no data grids
 print(which(colSums(is.na(var.matrix.sa)) != 0))
 print("Data extraction complete")
 
-
 # Writing .csv file for each grid cells
 print("Exporting into the workers")
 invisible(clusterEvalQ(cl,.libPaths("/storage/home/htn5098/local_lib/R35"))) # Really have to import library paths into the workers
 clusterExport(cl,list('var.matrix.sa','period','var')) #list('var.matrix.sa') expporting data into clusters for parallel processing
 print("Writing data files")
-#setwd("./data/interim") #it is not setting working directory to a new path that resets the library paths, preventing the workers to load the package doParralel
-foreach(i = 1:2) %dopar% { #ncol(var.matrix.sa)
+foreach(i = 1:ncol(var.matrix.sa)) %dopar% { #ncol(var.matrix.sa)
   outfile=data.frame(var.matrix.sa[,i])
   colnames(outfile) <- NULL
   grid=colnames(var.matrix.sa)[i]
-  outfilename=paste0('./data/interim/UW_',period,'_',var,'_',grid,'.csv')
+  outfilename=paste0(interim,'UW_',gcm,'_',period,'_',var,'_',grid,'.csv')
   write.csv(outfile,outfilename,row.names=F,col.names=F)
 }
 print("Completed")

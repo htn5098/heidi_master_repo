@@ -1,5 +1,14 @@
+inputs = commandArgs(trailingOnly=T)
+gcm=as.character(inputs[1])
+period=as.character(inputs[2])
+
+print(paste0(gcm,'_',period))
+
 .libPaths("/storage/home/htn5098/local_lib/R35") # needed for calling packages
 .libPaths()
+
+setwd('/storage/home/htn5098/work/DataAnalysis')
+interim='/storage/home/htn5098/scratch/DataAnalysis/data/interim/' 
 
 library(Evapotranspiration)
 library(lubridate)
@@ -15,33 +24,39 @@ registerDoParallel(cl)
 
 # Reading supporting files
 print("Reading supporting files")
-spfile <- read.csv('./data/SDGridElevation.csv',header=T) #grid points and elevation
+spfile <- read.csv('./data/external/SDElevation12km.csv',header=T) #grid points and elevation
 gridpoints <- spfile$Grid
-time = seq.Date(from = as.Date("1979-01-01",'%Y-%m-%d'),
+if (period=="historical") {
+  time = seq.Date(from = as.Date("1979-01-01",'%Y-%m-%d'),
                 to = as.Date("2016-12-31","%Y-%m-%d"),'day')
+} else if (period=="control") {
+  time = seq.Date(from = as.Date("1950-01-01",'%Y-%m-%d'),
+                to = as.Date("2005-12-31","%Y-%m-%d"),'day')
+} else {
+  time = seq.Date(from = as.Date("2006-01-01",'%Y-%m-%d'),
+                to = as.Date("2099-12-31","%Y-%m-%d"),'day')
+}
 J = as.numeric(format(time,'%j')) # turning date into julian days for calculation
 
 # Reading climate data
 print("Reading climate data")
 invisible(clusterEvalQ(cl,.libPaths("/storage/home/htn5098/local_lib/R35"))) # Really have to import library paths into the workers
-clusterExport(cl,list('spfile')) #list('var.matrix.sa') expporting data into clusters for parallel processing
+clusterExport(cl,list('spfile')) #expporting data into clusters for parallel processing
 print("Loop for calculating RET")
-ETo <- foreach(i = gridpoints,.combine = cbind) %do% {
+ETo <- foreach(i = gridpoints,.combine = cbind) %dopar% {
+  library(Evapotranspiration)
+  library(lubridate)
+  library(data.table)
   lat.grid <- spfile$Lat[spfile$Grid==i]
   z.grid <- spfile$Elev[spfile$Grid==i]
   grid = as.character(i)
-  tx = read.csv(paste0('./data/interim/UW_historical_tasmax_',i,'.csv'),header=F)
-  tn = read.csv(paste0('./data/interim/UW_historical_tasmin_',i,'.csv'),header=F)
-  rhx = read.csv(paste0('./data/interim/UW_historical_rh_max_',i,'.csv'),header=F)
-  rhn = read.csv(paste0('./data/interim/UW_historical_rh_min_',i,'.csv'),header=F)
-  Rs = read.csv(paste0('./data/interim/UW_historical_shortwave_',i,'.csv'),header=F)
-  head(Rs)
-  u10 = read.csv(paste0('./data/interim/UW_historical_wind_speed_',i,'.csv'),header=F)
+  tx = fread(paste0(interim,'UW_',gcm,'_',period,'_tasmax_',i,'.csv'),header=F)
+  tn = fread(paste0(interim,'UW_',gcm,'_',period,'_tasmin_',i,'.csv'),header=F)
+  rhx = fread(paste0(interim,'UW_',gcm,'_',period,'_rh_max_',i,'.csv'),header=F)
+  rhn = fread(paste0(interim,'UW_',gcm,'_',period,'_rh_min_',i,'.csv'),header=F)
+  Rs = fread(paste0(interim,'UW_',gcm,'_',period,'_shortwave_',i,'.csv'),header=F)*0.0864 #converting from W/m2 to MJ/m2/day
+  u10 = fread(paste0(interim,'UW_',gcm,'_',period,'_wind_speed_',i,'.csv'),header=F)
   # Transforming climate data into input file for Evapotranspiration package to read
-  #length(year(time))
-  #head(year(time))
-  #length(month(time))
-  #head(month(time))
   data <- data.frame(
     Station = grid,
     Year = year(time),
@@ -75,7 +90,7 @@ ETo <- foreach(i = gridpoints,.combine = cbind) %do% {
                                    solar = 'data')
   ETo.daily <- ETo.est$ET.Daily
 }
-head(ETo) 
-#head(ETo.daily)
-#head(ETo.monthly)
+colnames(ETo) <- as.character(gridpoints)
+head(ETo[,1:10]) 
+write.csv(ETo,paste0('./data/processed/UW_',period,'_RET_grid_daily.csv'),row.names=F)
 stopCluster(cl)
