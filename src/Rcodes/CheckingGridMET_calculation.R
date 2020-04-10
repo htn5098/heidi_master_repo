@@ -76,5 +76,5 @@ ETo <- foreach(i = gridpoints[1:10],.combine=cbind) %dopar% {
                                    solar = 'data')
   ETo.daily <- ETo.est$ET.Daily
 }
-head(ETo[,1:10]) 
+write.csv(ETo,'./data/processed/GridMET_ETo_1979.csv',row.names=F)
 stopCluster(cl)
