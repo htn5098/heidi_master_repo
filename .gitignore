@@ -2,3 +2,4 @@
 .nc
 out_*.o*
 test*
+.csv
