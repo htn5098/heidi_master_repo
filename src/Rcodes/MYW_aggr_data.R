@@ -19,9 +19,8 @@ no_cores <- detectCores()
 cl <- makeCluster(no_cores-1)
 registerDoParallel(cl)
 
-#years <- 1979:2018
-#time <- seq.Date(as.Date('1979-01-01'), as.Date('2018-12-31'), by ='days')
-csvfiles <- list.files(path = interim,pattern = paste0('^gridMET.*',namevar), full.names = T) # changing path to gridMET files
+csvfiles <- list.files(path = interim,pattern = paste0('^gridMET.*',namevar,'.*1979'), full.names = T) # changing path to gridMET files
+print(csvfiles)
 gridpoint <- read.table("./data/external/ret_indx_clean.txt",sep = ',', header = T)
 column.names <- list(grid = sort(unique(gridpoint$Grid)),
                     county = sort(unique(gridpoint$COUNTYNS)))
