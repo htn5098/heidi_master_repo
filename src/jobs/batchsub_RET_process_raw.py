@@ -1,7 +1,16 @@
 #!/usr/bin/python3
 
 import os 
+os.chdir(r'/storage/work/h/htn5098/DataAnalysis/src/jobs')
 import subprocess 
+import sys
+import pandas as pd
+
+inputs=sys.argv
+
+inputs.pop(0) # removing the name of the file at the beginning
+action=inputs.pop() # what to do with the download file
+rowItems=[int(x) for x in inputs] # turn the list of row names into numbers
 
 var = ['tasmax','tasmin','rh_max','rh_min','shortwave','wind_speed']
 

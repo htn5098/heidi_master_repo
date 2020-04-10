@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N dl_drive_data
+#PBS -N RETmaster
 #PBS -l nodes=1:ppn=10
 #PBS -l pmem=4gb
 #PBS -l walltime=02:00:00
@@ -8,20 +8,23 @@
 
 # Loading modules
 module purge
+module load python
 
 # Go to the directory
-cd  /storage/work/h/htn5098/DataAnalysis/ #$PBS_O_WORKDIR 
+cd  /storage/work/h/htn5098/DataAnalysis/src/jobs/ #$PBS_O_WORKDIR 
 
 echo "Job started on `hostname` at `date`"
 
 # Run the job
-one=$(qsub RET_download_raw.pbs)
-echo $one
-two=$(qsub RET_metadata.pbs -W depend=afterok:$one)
-echo $two
-three=$(qsub RET_process_raw_data.pbs -W depend=afterok:$two)
-echo $three
-four=$(qsub RET_calculation.pbs -W depend=afterok:$three)
-echo $four
+mkdir historical
+
+python batchsub_RET_download_drive.py 0 1 meta historical
+dl="./historical/batch_download*"
+for id in $dl
+do
+  qsub -N dlhist $id
+done
+
+qsub job1.pbs -W dependency=afterok:dlhist
 
 echo "Job ended at `date`"

@@ -6,16 +6,22 @@
 #PBS -A open
 #PBS -j oe
 
+# Author note: this file is for running downloading Rcode separately for individual .nc files
+# For running batch submission of files, use the batchsub_RET_download_drive.py
+
 # Loading modules
 module purge
 module load r/3.4
+module load python
 
 # Go to the directory
-cd  /storage/home/htn5098/work/DataAnalysis #$PBS_O_WORKDIR 
+cd  /storage/home/htn5098/work/DataAnalysis 
 
 echo "Job started on `hostname` at `date`"
 
 # Run the job
-Rscript ./src/Rcodes/RET_downloading_raw.R https://drive.google.com/open?id=1vm_roWupfjavjp7d9-Vaa7NR8IBUfZJk control meta
+Rscript ./src/Rcodes/RET_downloading_raw.R https://drive.google.com/open?id=1vm_roWupfjavjp7d9-Vaa7NR8IBUfZJk control download
+Rscript ./src/Rcodes/RET_downloading_raw.R https://drive.google.com/open?id=1kWt9Lo2R3AK11zSZXaIFJHbUGQ369a8i rcp45 download
+Rscript ./src/Rcodes/RET_downloading_raw.R https://drive.google.com/open?id=1dY7w674JwKeXo3WaiUfWcqKbjZ_hGk0h rcp85 download
 
 echo "Job ended at `date`"
