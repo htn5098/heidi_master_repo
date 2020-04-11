@@ -3,3 +3,6 @@
 out_*.o*
 test*
 .csv
+batch_*
+job*.pbs
+*test*
