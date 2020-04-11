@@ -8,7 +8,7 @@ period=as.character(inputs[4])
 .libPaths()
 
 setwd('/storage/home/htn5098/work/DataAnalysis')
-inputpath='/storage/home/htn5098/scratch/DataAnalysis/data/raw/UW_clim/historical/' # where .nc files are
+inputpath='/storage/home/htn5098/scratch/DataAnalysis/data/raw/UW_clim/' # where .nc files are
 interim='/storage/home/htn5098/scratch/DataAnalysis/data/interim/' #where to put .csv files for next step
 
 library(ncdf4)
@@ -25,7 +25,7 @@ registerDoParallel(cl)
 
 # Reading the .nc file 
 print("Reading nc file")
-nc.file <- nc_open(paste0(inputpath,filename)) #
+nc.file <- nc_open(paste0(inputpath,period,'/',filename)) #
 
 # Reading supporting files
 print("Reading supporting files")
