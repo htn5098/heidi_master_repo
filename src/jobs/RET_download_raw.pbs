@@ -1,5 +1,5 @@
 #!/bin/bash
-#PBS -N out_dl_drive
+#PBS -N RETdl
 #PBS -l nodes=1:ppn=10
 #PBS -l pmem=4gb
 #PBS -l walltime=02:00:00
@@ -12,16 +12,27 @@
 # Loading modules
 module purge
 module load r/3.4
-module load python
 
 # Go to the directory
 cd  /storage/home/htn5098/work/DataAnalysis 
 
-echo "Job started on `hostname` at `date`"
-
 # Run the job
-Rscript ./src/Rcodes/RET_downloading_raw.R https://drive.google.com/open?id=1vm_roWupfjavjp7d9-Vaa7NR8IBUfZJk control download
-Rscript ./src/Rcodes/RET_downloading_raw.R https://drive.google.com/open?id=1kWt9Lo2R3AK11zSZXaIFJHbUGQ369a8i rcp45 download
-Rscript ./src/Rcodes/RET_downloading_raw.R https://drive.google.com/open?id=1dY7w674JwKeXo3WaiUfWcqKbjZ_hGk0h rcp85 download
+ulimit -s unlimited # raising stack limit to unlimited
+echo "Job started on `hostname` at `date`"
+# Reading information for downloading files from the link file "Drive_link_UWclim.txt"
+line=$PBS_ARRAYID # reading the line number which contains information of the link to download
+echo $line
+gcm=`awk -F ',' -v line=$line 'NR==line {print $1}' ./data/external/Drive_link_UWclim.txt` # gcm name
+echo $gcm
+period=`awk -F ',' -v line=$line 'NR==line {print $2}' ./data/external/Drive_link_UWclim.txt` # period
+echo $period
+link=`awk -F ',' -v line=$line 'NR==line {print $3}' ./data/external/Drive_link_UWclim.txt` # drive link
+echo $link
+Rscript ./src/Rcodes/RET_downloading_raw.R $link $gcm $period # running R script to download
+
+echo "After downloading file, mannually manage the variable file outputs for processing climate variables"
+echo "1-tx, 2-tn, 3-rhx, 4-rhn, 5-ws (windspeed), 6-rs (shortwave solar radiation), 7-precip (precipitation)"
+echo "Delete the header after mannually rearrange the data"
+echo "The final file should have 7 rows and 6 columns"
 
 echo "Job ended at `date`"

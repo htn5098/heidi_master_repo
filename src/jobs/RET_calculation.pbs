@@ -1,10 +1,9 @@
 #!/bin/bash
-#PBS -N out_RET_cal
+#PBS -N RETcal
 #PBS -l nodes=1:ppn=10
 #PBS -l pmem=4gb
-#PBS -l walltime=01:00:00
+#PBS -l walltime=02:00:00
 #PBS -A open
-#PBS -j oe
 
 # Loading modules
 module purge
@@ -15,5 +14,5 @@ cd  /storage/home/htn5098/work/DataAnalysis
 
 # Run the job
 echo "Job started on `hostname` at `date`"
-Rscript ./src/Rcodes/RET_calculation.R '' historical
+Rscript ./src/Rcodes/RET_calculation.R $gcm $period $timeL
 echo "Job ended at `date`"

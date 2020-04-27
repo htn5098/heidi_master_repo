@@ -8,23 +8,40 @@
 
 # Loading modules
 module purge
-module load python
+#module load python
 
 # Go to the directory
-cd  /storage/work/h/htn5098/DataAnalysis/src/jobs/ #$PBS_O_WORKDIR 
-
-echo "Job started on `hostname` at `date`"
+cd  /storage/work/h/htn5098/DataAnalysis/src/jobs/
 
 # Run the job
-mkdir historical
+ulimit -s unlimited # raising stack limit to unlimited
+echo "Job started on `hostname` at `date`"
 
-python batchsub_RET_download_drive.py 0 1 meta historical
-dl="./historical/batch_download*"
-for id in $dl
-do
-  qsub -N dlhist $id
-done
+## Determinging which .nc file to process
+line=$line # reading the line number which contains information of the link to download
+echo $line
+gcm=`awk -F ',' -v line=$line 'NR==line {print $1}' ../../data/external/Drive_link_UWclim.txt` # gcm name
+echo $gcm
+period=`awk -F ',' -v line=$line 'NR==line {print $2}'  ../../data/external/Drive_link_UWclim.txt` # period
+echo $period
+varfile="../../data/external/UW_${gcm}_${period}_var.txt" # name of the variable file
+echo $varfile
 
-qsub job1.pbs -W dependency=afterok:dlhist
+touch ../../data/log_files/UW_${gcm}_${period}_var_missing.txt # creating a file for missing data from climte variables, important for inconsitent climate data records
+
+## Processing climate data
+one=`qsub -t 1-6 -v "varfile=$varfile" RET_process_raw_data.pbs` # processing 6 variables for ETo calculation
+oneID=`echo $one | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'` # extrating job id for chain submission
+echo $one
+
+## Calculating climate data
+timeL=`awk 'NR==1 {print $5}' $varfile` # the length of time (critical for files that have irregular time length)
+echo $timeL
+two=`qsub -W depend=afterokarray:$oneID[] -v "gcm=$gcm, period=$period, timeL=$timeL" RET_calculation.pbs`
+echo $two
+
+## Cleaning data
+#three=`qsub -W depend=afterok:$two -v "gcm=$gcm, period=$period" RET_cleaning.pbs`
+#echo $three
 
 echo "Job ended at `date`"

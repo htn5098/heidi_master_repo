@@ -1,22 +1,36 @@
 #!/bin/bash
-#PBS -N out_RET_pro
+#PBS -N RETprocess
 #PBS -l nodes=1:ppn=10
 #PBS -l pmem=4gb
 #PBS -l walltime=02:00:00
 #PBS -A open
-#PBS -j oe
 
 # Loading modules
 module purge
 module load python
 
 # Go to the directory
-cd /storage/home/htn5098/work/DataAnalysis/src/jobs/
+cd /storage/home/htn5098/work/DataAnalysis/src/jobs
 
 echo "Job started on `hostname` at `date`"
 
 # Run the job
 #R --file=../Rcodes/test_loop.R
-python batchsub_RET_process_raw.py
+varfile=$varfile
+echo $varfile
+line=$PBS_ARRAYID # reading the line number which contains information of the link to download
+echo $line
+ncfile=`awk -v line=$line 'NR==line {print $1}' $varfile | tr -d '""'` # location of the .nc file
+echo $ncfile
+gcm=`awk -v line=$line 'NR==line {print $2}' $varfile | tr -d '""'` # gcm name
+echo $gcm
+period=`awk -v line=$line 'NR==line {print $3}' $varfile | tr -d '""'` # period
+echo $period
+var=`awk -v line=$line 'NR==line {print $4}' $varfile | tr -d '""'` # variable name in .nc file
+echo $var
+varname=`awk -v line=$line 'NR==line {print $6}' $varfile | tr -d '""'` # variable name for output files
+echo $varname
+
+Rscript ../Rcodes/RET_processing_rawdata.R $ncfile $gcm $period $var $varname
 
 echo "Job ended at `date`"
