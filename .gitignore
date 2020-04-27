@@ -6,4 +6,6 @@ test*
 batch_*
 job*.pbs
 *test*
-/jobs_output
+/src/jobs/jobs_output
+*.Rhistory
+*.RData
