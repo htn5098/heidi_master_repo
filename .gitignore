@@ -1,8 +1,9 @@
 /data
-.nc
+*.nc
 out_*.o*
 test*
-.csv
+*.csv
 batch_*
 job*.pbs
 *test*
+/jobs_output
