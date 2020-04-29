@@ -7,7 +7,9 @@ ncfile=as.character(inputs[1])
 gcm=as.character(inputs[2])
 period=as.character(inputs[3])
 var=as.character(inputs[4])
-varname=as.character(inputs[5])
+timeLength=as.numeric(inputs[5])
+varname=as.character(inputs[6])
+
 
 # CHANGING LIBRARY PATH
 .libPaths("/storage/home/htn5098/local_lib/R35") # needed for calling packages
@@ -34,7 +36,6 @@ registerDoParallel(cl)
 # READING INPUT AND SUPPORTING DATA FILES
 print("Reading nc file")
 print(ncfile)
-print(var)
 nc.file <- nc_open(ncfile) # reading the downloaded .nc file
 coord_se <- read.table('./data/external/SDGrid0125sort.txt', sep = ',', header = T) # file contains information about grid index
 indx = sort(unique(coord_se$Grid)) # index numbers of grids in the study area
@@ -50,6 +51,12 @@ var.matrix.sa <- var.matrix[,indx] # selecting only gridcells within the study a
 colnames(var.matrix.sa) <- as.character(indx)
 indx_NA <- which(colSums(is.na(var.matrix.sa)) != 0) # finding grids with NA's
 var.matrix.sa[,indx_NA] <- 0 # eliminating no data grids
+if(nrow(var.matrix.sa)!=timeLength) {
+  print(paste("Length of data is not",timeLength))
+  var.matrix.sa <- var.matrix.sa[1:timeLength,]
+} else {
+  print(paste("Length of data is ",timeLength))
+}
 head(var.matrix.sa[,1:10])
 print("Data extraction complete")
 ## Summarizing missing data for later references

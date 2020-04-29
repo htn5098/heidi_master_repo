@@ -35,18 +35,23 @@ if(!file.exists(paste0(dataRaw,filename,'.nc'))) { # checking whether file exist
   drive_download(file=linkGet,path=paste0(dataRaw,filename,'.nc'))
 }
 
+# EXTRACTING METADATA
 print("Reading .nc file")
 nc = nc_open(paste0(dataRaw,filename,'.nc')) # reading the nc file
+print(names(nc$dim))
+print("Extrating information for metadata")
 varls <- names(nc$var)
+print(varls)
 lat = ncvar_get(nc,varid='lat')
 lon = ncvar_get(nc,varid='lon')
-time = ncvar_get(nc,varid='day')
+time = ncvar_get(nc,varid='time')
 if(!any(grepl(pattern='time',names(nc$var)))) { # this is to eliminate the time variable in the variable list of the .nc file
   varls <- names(nc$var)
-  
+
 } else {
   varls <- names(nc$var)[-grep(pattern='time',names(nc$var))]
 }
+
 print("Writing metadat file")
 sink(paste0('./data/log_files/',filename,'_meta.txt'))
 cat(paste('Drive name:',drivename,'\n'))
@@ -56,17 +61,17 @@ for (i in varls) {
     cat(paste('Variable id:',i,'\n'))
     cat(paste('\tVariable std name:',varatt$standard_name,'\n'))
     cat(paste('\tVariable unit:',varatt$units,'\n'))
-    cat(paste('\tLattitude range is:',round(lat[1],3),'to',round(lat[length(lat)],3),' Unit:',nc$dim[[2]]$units,'\n'))
-    cat(paste('\tLongtitude range is:',round(lon[1],3),'to',round(lon[length(lon)],3),' Unit:',nc$dim[[3]]$units,'\n'))
+    cat(paste('\tLattitude range is:',round(lat[1],3),'to',round(lat[length(lat)],3),' Unit:',nc$dim$lat$units,'\n'))
+    cat(paste('\tLongtitude range is:',round(lon[1],3),'to',round(lon[length(lon)],3),' Unit:',nc$dimlon$units,'\n'))
     cat(paste('\tTime range is:',time[1],'to',time[length(time)],' - Length:',length(time),'Unit: daily'))
-    cat('\n') 
+    cat('\n')
 }
 cat('\n')
 cat('Metadata from .nc file:')
 print(nc)
 sink()
 
-# Creating variable inputs for processing data
+# CREATING VARIABLE FILES
 print("Creating variable data file")
 varfile <- data.frame(Filename = paste0(dataRaw,filename,'.nc'),
                       GCM = gcm,
@@ -74,5 +79,5 @@ varfile <- data.frame(Filename = paste0(dataRaw,filename,'.nc'),
                       Var=varls,
                       TimeLength=length(time))
 print(paste0('./data/external/',filename,'_var.txt'))
-write.txt(varfile,paste0('./data/external/',filename,'_var.txt'),row.names=F)
+write.table(varfile,paste0('./data/external/',filename,'_var.txt'),row.names=F)
 print("Complete!")

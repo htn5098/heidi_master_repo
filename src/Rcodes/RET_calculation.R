@@ -7,6 +7,9 @@ gcm=as.character(inputs[1])
 period=as.character(inputs[2])
 timeLength=as.numeric(inputs[3])
 
+print(gcm)
+print(period)
+
 # CHANGING LIBRARY PATH
 .libPaths("/storage/home/htn5098/local_lib/R35") # needed for calling packages
 .libPaths()
