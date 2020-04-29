@@ -10,3 +10,4 @@ job*.pbs
 /src/jobs/jobs_output
 *.Rhistory
 *.RData
+/src/jobs/sample_codes
