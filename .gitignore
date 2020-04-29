@@ -1,6 +1,7 @@
 /data
 *.nc
-out_*.o*
+*.o*
+*.e*
 test*
 *.csv
 batch_*
