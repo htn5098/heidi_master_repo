@@ -1,7 +1,5 @@
 #!/bin/bash
 #PBS -N RETprocess
-#PBS -l nodes=1:ppn=10
-#PBS -l pmem=4gb
 #PBS -l walltime=02:00:00
 #PBS -A open
 
@@ -28,9 +26,11 @@ period=`awk -v line=$line 'NR==line {print $3}' $varfile | tr -d '""'` # period
 echo $period
 var=`awk -v line=$line 'NR==line {print $4}' $varfile | tr -d '""'` # variable name in .nc file
 echo $var
+timeL=`awk 'NR==1 {print $5}' $varfile` # the length of time (critical for files that have irregular time length)
+echo $timeL
 varname=`awk -v line=$line 'NR==line {print $6}' $varfile | tr -d '""'` # variable name for output files
 echo $varname
 
-Rscript ../Rcodes/RET_processing_rawdata.R $ncfile $gcm $period $var $varname
+Rscript ../Rcodes/RET_processing_rawdata.R $ncfile $gcm $period $var $timeL $varname
 
 echo "Job ended at `date`"
