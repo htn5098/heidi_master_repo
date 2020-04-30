@@ -10,7 +10,6 @@ var=as.character(inputs[4])
 timeLength=as.numeric(inputs[5])
 varname=as.character(inputs[6])
 
-
 # CHANGING LIBRARY PATH
 .libPaths("/storage/home/htn5098/local_lib/R35") # needed for calling packages
 .libPaths()
