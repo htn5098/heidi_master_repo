@@ -16,6 +16,8 @@ echo "Job started on `hostname` at `date`"
 #R --file=../Rcodes/test_loop.R
 varfile=$varfile
 echo $varfile
+timeL=$timeL
+echo $timeL
 line=$PBS_ARRAYID # reading the line number which contains information of the link to download
 echo $line
 ncfile=`awk -v line=$line 'NR==line {print $1}' $varfile | tr -d '""'` # location of the .nc file
@@ -26,8 +28,6 @@ period=`awk -v line=$line 'NR==line {print $3}' $varfile | tr -d '""'` # period
 echo $period
 var=`awk -v line=$line 'NR==line {print $4}' $varfile | tr -d '""'` # variable name in .nc file
 echo $var
-timeL=`awk 'NR==1 {print $5}' $varfile` # the length of time (critical for files that have irregular time length)
-echo $timeL
 varname=`awk -v line=$line 'NR==line {print $6}' $varfile | tr -d '""'` # variable name for output files
 echo $varname
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -N RETmaster
-#PBS -l nodes=1:ppn=10
-#PBS -l pmem=4gb
+#PBS -l nodes=1:ppn=1
+#PBS -l pmem=1gb
 #PBS -l walltime=02:00:00
 #PBS -A open
 #PBS -j oe
@@ -26,22 +26,27 @@ period=`awk -F ',' -v line=$line 'NR==line {print $2}'  ../../data/external/Driv
 echo $period
 varfile="../../data/external/UW_${gcm}_${period}_var.txt" # name of the variable file
 echo $varfile
+# the length of time (critical for files that have irregular time length)
+if [ ${period} == historical ]
+then
+	timeL=13880
+elif [ ${period} == control ]
+then
+	timeL=20454
+else 
+	timeL=34333
+fi
+echo $timeL
 
 touch ../../data/log_files/UW_${gcm}_${period}_var_missing.txt # creating a file for missing data from climte variables, important for inconsitent climate data records
 
 ## Processing climate data
-one=`qsub -t 1-6 -v "varfile=$varfile" RET_process_raw_data.pbs` # processing 6 variables for ETo calculation
+one=`qsub -l nodes=1:ppn=15 -l pmem=8gb -t 1-6 -v "varfile=$varfile,timeL=$timeL" RET_process_raw_data.pbs` # processing 6 variables for ETo calculation
 oneID=`echo $one | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'` # extrating job id for chain submission
 echo $one
 
 ## Calculating climate data
-timeL=`awk 'NR==1 {print $5}' $varfile` # the length of time (critical for files that have irregular time length)
-echo $timeL
-two=`qsub -W depend=afterokarray:$oneID[] -v "gcm=$gcm, period=$period, timeL=$timeL" RET_calculation.pbs`
+two=`qsub -l nodes=1:ppn=15 -l pmem=8gb -W depend=afterokarray:$oneID[] -v "gcm=$gcm, period=$period, timeL=$timeL" RET_calculation.pbs`
 echo $two
-
-## Cleaning data
-#three=`qsub -W depend=afterok:$two -v "gcm=$gcm, period=$period" RET_cleaning.pbs`
-#echo $three
 
 echo "Job ended at `date`"
