@@ -1,3 +1,12 @@
+# *** AGGREGATING DATA ***
+# AUTHOR: HEIDI NGUYEN 
+# email: htn5098@psu.edu
+
+inputs = commandArgs(trailingOnly=T)
+gcm=as.character(inputs[1])
+period=as.character(inputs[2])
+timeLength=as.numeric(inputs[3])
+
 .libPaths("/storage/home/htn5098/local_lib/R35") # needed for calling packages
 .libPaths()
 setwd('/storage/work/h/htn5098/DataAnalysis/') # changing working directory

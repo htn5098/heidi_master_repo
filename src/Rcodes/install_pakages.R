@@ -10,7 +10,8 @@ req.packages <- c("googledrive",
                   "data.table",
                   "dplyr",
                   "foreach",
-                  "doParallel")
+                  "doParallel",
+                  "filematrix")
 
 installed <- installed.packages()
 

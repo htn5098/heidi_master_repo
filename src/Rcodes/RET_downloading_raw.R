@@ -47,7 +47,6 @@ lon = ncvar_get(nc,varid='lon')
 time = ncvar_get(nc,varid='time')
 if(!any(grepl(pattern='time',names(nc$var)))) { # this is to eliminate the time variable in the variable list of the .nc file
   varls <- names(nc$var)
-
 } else {
   varls <- names(nc$var)[-grep(pattern='time',names(nc$var))]
 }
