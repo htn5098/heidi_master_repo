@@ -4,7 +4,7 @@
 #PBS -l walltime=02:00:00
 #PBS -A open
 #PBS -j oe
-#PBS -N MACA_extract #MACA GCM downloaded from GridMET 
+#PBS -N MACA_extr #MACA GCM downloaded from GridMET 
 
 # Loading modules
 module purge
@@ -24,11 +24,14 @@ cd /storage/home/htn5098/work/DataAnalysis/src/jobs/
 # Information of GCM, period and variable
 gcm=$gcm
 period=$period
-var=$var
-i=$PBS_ARRAYID
+period=${period[@]} #change names to wanted period
+echo ${period[@]}
+var=${var[@]}
+echo ${period[@]}
+interimpath=$interimpath
+#i=$PBS_ARRAYID
 
-echo "Hey, it's $gcm, $period, and ${var[i]}"
-#Rscript ../Rcodes/GridMETMACA_extract_var.R 1 1 -1 -1 $rawpath $interimpath $gcm $period ${var[i]}
+parallel Rscript ../Rcodes/GridMETMACA_extract_var.R 1 1 -1 -1 $rawpath $interimpath ::: ${period[@]} ::: ${var[@]}
 
 echo "Extracting ends at `date`"
 END=$(date +%s)
