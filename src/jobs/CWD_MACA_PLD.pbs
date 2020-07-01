@@ -1,0 +1,67 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=8
+#PBS -l pmem=15gb
+#PBS -l walltime=02:00:00
+#PBS -A open
+#PBS -j oe
+#PBS -N MACA_pld #MACA GCM downloaded from GridMET 
+
+# Loading modules
+module purge
+module load r
+module load gcc/5.3.1
+module load parallel/20170522
+
+# Export to a tmp folder with more space
+export TMPDIR=/storage/home/htn5098/scratch/tmpBigdata #to avoid running out of space when running jobs in parallel
+
+echo "Job started on `hostname` at `date`"
+START=$(date +%s)
+
+# Go to the directory
+cd /storage/home/htn5098/work/DataAnalysis/src/jobs/
+
+# Information of GCM, period and variable
+gcm=MIROC5_r1i1p1 # name of the GCM to process here
+period=(historical rcp45 rcp85) #change names to wanted period
+var=(tasmin tasmax) # change names to wanted climate variables 
+rawpath=/storage/home/htn5098/scratch/DataAnalysis/data/raw/GridMET_MACA
+interimpath=/storage/home/htn5098/scratch/DataAnalysis/data/interim
+threshold=10
+
+# Removing downloaded files that has size 0 (0gb files are usually due to error in connection when downloading)
+find $rawpath -size 0 -delete
+
+# Download GCMs data
+qsub -v "gcm=$gcm,period=$period,var=$var,rawpath=$rawpath,interimpath=$interimpath" 
+wait
+
+# Extracting relevant climate variables from .nc file
+
+#parallel echo $gcm ::: ${period[@]} ::: ${var[@]} # all variables in the pipe must be put at the end
+#Rscript ../Rcodes/GridMETMACA_extract_var.R 1 1 -1 -1 $rawpath $interimpath $gcm
+#Rscript ../Rcodes/GridMETMACA_extract_var.R 1 1 -1 -1 $rawpath $interimpath $gcm rcp45 tasmax
+#varL=$((`echo ${#var[@]}`-1))
+varseq=0:$((`echo ${#var[@]}`-1))
+for i in $(seq 0 $((`echo ${#period[@]}`-1)))
+do
+#  declare -a extractID
+#  for j in $(seq 0 $((`echo ${#var[@]}`-1)))
+#  do
+  extractJob=`qsub -v "gcm=$gcm, period=${period[i]}, var=$var" -t 0:$((`echo ${#var[@]}`-1)) CWD_MACA_extracting.pbs`
+  extractJobID=`echo $one | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
+#  done
+#  echo ${extractID[@]}
+  pldcalJob=`qsub -v "gcm=$gcm, period=${period[i]}" -W depend=afterarrayok:$extractJobID[] CWD_MACA_pldcal.pbs` 
+done
+wait
+
+#Processing the final variable
+#parallel Rscript ../Rcodes/CWD_PlantDate_estimation.R $interimpath $threshold $gcm ::: ${period[@]} 
+#echo "Successfully waiting for process to get done at `date`" > Success.txt
+
+echo "Job ended `date`"
+END=$(date +%s)
+sec=$((END-START))
+min=$((sec/60))
+echo "Time elapsed: $min minutes"
