@@ -23,62 +23,39 @@ cd /storage/home/htn5098/work/DataAnalysis/src/jobs/
 
 # Information of GCM, period and variable
 gcm=$gcm # name of the GCM to process here
-period=$period #change names to wanted period
-var=$var # change names to wanted climate variables 
+period=${period[@]} #change names to wanted period
+echo ${period[@]}
+var=${var[@]} # change names to wanted climate variables
+echo ${var[@]}
 rawpath=$rawpath # path to storing downloaded raw GCMs
-interimpath=$interimpath # path to storing 
 
 # Creating helper functions
 function wget_create () {
-  gcm=$1
-	period=$2
-	var=$3
-  rawpath=$4
-	echo "Processing data for $1 $2 $3"
-	if test -f "../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh" # delete any existing files to avoid conflict
-	then
-		echo "Wget file exists"
-		files=`awk '{print $7}' ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh`
-		for i in ${files[@]}
-		do
-			if test -f "${rawpath}/$i"  # checking if files exist or not
-			then
-        echo "Nc file already exist"
-			else
-				echo "Nc file missing"
-				rm ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
-				touch ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
-				echo "#!/bin/bash" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
-				echo "cd $rawpath" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
-				awk -v gcm=$gcm -v period=$period -v var=$var '$0~gcm && $0~period && $0~var {print}' ../wget_scripts/macav2metdata_allGCM_allvar_allperiod_wget.sh >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
-				nline=`awk 'END {print NR}' ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh`
-				echo $nline
-				exit
-			fi
-		done
-	else
-		echo "Will create new wget file"
-		touch ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
-		echo "#!/bin/bash" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
-		echo "cd /storage/home/htn5098/scratch/DataAnalysis/data/raw/GridMET_MACA" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
-		awk -v gcm=$gcm -v period=$period -v var=$var '$0~gcm && $0~period && $0~var {print}' ../wget_scripts/macav2metdata_allGCM_allvar_allperiod_wget.sh >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
-		nline=`awk 'END {print NR}' ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh`
-		echo $nline 
-		exit
-	fi
+  rawpath=$1
+  gcm=$2
+	period=$3
+	var=$4
+  echo "Creating wget script for $gcm $period $var"
+	touch ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
+	echo "#!/bin/bash" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
+	echo "cd $rawpath" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
+	awk -v gcm=$gcm -v period=$period -v var=$var '$0~gcm && $0~period && $0~var {print}' ../wget_scripts/macav2metdata_allGCM_allvar_allperiod_wget.sh >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
 }
 function bash_wget () {
-  gcm=$1
-	period=$2
-	var=$3
+  rawpath=$1
+  gcm=$2
+	period=$3
+	var=$4
+  echo "Start downloading $gcm $period $var"
   bash ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
 }
 function check_file () {
-  gcm=$1
-	period=$2
-	var=$3
-  cd /storage/home/htn5098/scratch/DataAnalysis/data/raw/GridMET_MACA
-  ls -l | awk -v gcm=$gcm -v period=$period -v var=$var '$0~gcm && $0~period && $0~var && $5==0 {print $5, $9}'  
+  rawpath=$1
+  gcm=$2
+	period=$3
+	var=$4
+  cd $rawpath
+  ls -l | awk -v gcm=$gcm -v period=$period -v var=$var '$0~gcm && $0~period && $0~var {print $5, $9}'  
 }
 export -f wget_create
 export -f bash_wget
@@ -88,15 +65,39 @@ export -f check_file
 find $rawpath -size 0 -delete
 
 # Creating a download script for multiple years for the GCM, periods and variables selected
-parallel wget_create $gcm ::: ${period[@]} ::: ${var[@]}
-parallel bash_wget $gcm ::: ${period[@]} ::: ${var[@]}
+parallel wget_create $rawpath $gcm ::: ${period[@]} ::: ${var[@]}
+parallel bash_wget $rawpath $gcm ::: ${period[@]} ::: ${var[@]}
 wait 
 
-# Checking if there is 0gb file
-parallel check_file $gcm ::: ${period[@]} ::: ${var[@]}
+# Checking all the downloaded files
+parallel check_file $rawpath $gcm ::: ${period[@]} ::: ${var[@]}
 
 echo "Job ended `date`"
 END=$(date +%s)
 sec=$((END-START))
 min=$((sec/60))
 echo "Time elapsed: $min minutes"
+
+#	if test -f "../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh" # delete any existing files to avoid conflict
+#	then
+#		echo "Wget file exists"
+#		files=`awk '{print $7}' ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh`
+#		for i in ${files[@]}
+#		do
+#			if test -f "${rawpath}/$i"  # checking if files exist or not
+#			then
+#        echo "Nc file already exist"
+#			else
+#				echo "Nc file missing"
+#				rm ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
+#				touch ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
+#				echo "#!/bin/bash" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
+#				echo "cd $rawpath" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
+#				awk -v gcm=$gcm -v period=$period -v var=$var '$0~gcm && $0~period && $0~var {print}' ../wget_scripts/macav2metdata_allGCM_allvar_allperiod_wget.sh >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
+#				nline=`awk 'END {print NR}' ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh`
+#				echo $nline
+#				exit
+#			fi
+#		done
+#	else
+#		echo "Will create new wget file"
