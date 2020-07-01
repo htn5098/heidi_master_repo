@@ -23,15 +23,21 @@ cd /storage/home/htn5098/work/DataAnalysis/src/jobs/
 
 # Information of GCM, period and variable
 gcm=$gcm
-period=$period
-period=${period[@]} #change names to wanted period
-echo ${period[@]}
+period=${period[@]} 
 var=${var[@]}
-echo ${period[@]}
+rawpath=$rawpath 
 interimpath=$interimpath
 #i=$PBS_ARRAYID
 
-parallel Rscript ../Rcodes/GridMETMACA_extract_var.R 1 1 -1 -1 $rawpath $interimpath ::: ${period[@]} ::: ${var[@]}
+for i in ${period[@]} 
+do
+  for j in ${var[@]}
+  do 
+    Rscript ../Rcodes/GridMETMACA_extract_var.R 1 1 -1 -1 $rawpath $interimpath $gcm $i $j
+  done
+done
+
+#parallel Rscript ../Rcodes/GridMETMACA_extract_var.R 1 1 -1 -1 $rawpath $interimpath $gcm ::: ${period[@]} ::: ${var[@]}
 
 echo "Extracting ends at `date`"
 END=$(date +%s)
