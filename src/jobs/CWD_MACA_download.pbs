@@ -55,7 +55,9 @@ function check_file () {
 	period=$3
 	var=$4
   cd $rawpath
-  ls -l | awk -v gcm=$gcm -v period=$period -v var=$var '$0~gcm && $0~period && $0~var {print $5, $9}'  
+  printf "\n Downloaded files for $gcm $period $var \n"
+  ls -l | awk -v gcm=$gcm -v period=$period -v var=$var '$0~gcm && $0~period && $0~var {print $5, $9}' 
+  printf "\n" 
 }
 export -f wget_create
 export -f bash_wget
