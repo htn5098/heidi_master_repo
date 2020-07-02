@@ -1,6 +1,6 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=8
-#PBS -l pmem=15gb
+#PBS -l nodes=1:ppn=10
+#PBS -l pmem=10gb
 #PBS -l walltime=02:00:00
 #PBS -A open
 #PBS -j oe
@@ -38,33 +38,16 @@ oneID=`echo $one | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
 echo $one
 
 # Extract relevant climate variables from .nc file
-two=`qsub -v "gcm=$gcm,period=${period[@]},var=${var[@]},rawpath=$rawpath,interimpath=$interimpath" -W depend=afterok:$oneID CWD_MACA_extract.pbs`
+two=`qsub -v "gcm=$gcm,period=${period[@]},var=${var[@]},rawpath=$rawpath,interimpath=$interimpath" CWD_MACA_extract.pbs -W depend=afterok:$oneID` 
 twoID=`echo $two | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
 echo $two
 
-#parallel echo $gcm ::: ${period[@]} ::: ${var[@]} # all variables in the pipe must be put at the end
-#Rscript ../Rcodes/GridMETMACA_extract_var.R 1 1 -1 -1 $rawpath $interimpath $gcm
-#Rscript ../Rcodes/GridMETMACA_extract_var.R 1 1 -1 -1 $rawpath $interimpath $gcm rcp45 tasmax
-#varL=$((`echo ${#var[@]}`-1))
-#varseq=0:$((`echo ${#var[@]}`-1))
-#for i in $(seq 0 $((`echo ${#period[@]}`-1)))
-#do
-##  declare -a extractID
-##  for j in $(seq 0 $((`echo ${#var[@]}`-1)))
-##  do
-#  extractJob=`qsub -v "gcm=$gcm, period=${period[i]}, var=$var" -t 0:$((`echo ${#var[@]}`-1)) CWD_MACA_extracting.pbs`
-#  extractJobID=`echo $one | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
-##  done
-##  echo ${extractID[@]}
-#  pldcalJob=`qsub -v "gcm=$gcm, period=${period[i]}" -W depend=afterarrayok:$extractJobID[] CWD_MACA_pldcal.pbs` 
-#done
-#wait
-
-#Processing the final variable
-#parallel Rscript ../Rcodes/CWD_PlantDate_estimation.R $interimpath $threshold $gcm ::: ${period[@]} 
-#echo "Successfully waiting for process to get done at `date`" > Success.txt
-
+# Calculate the final variable
+three=`qsub -v "gcm=$gcm,period=${period[@]},interimpath=$interimpath,threshold=$threshold" CWD_MACA_pldcal.pbs -W depend=afterok:$twoID`
+threeID=`echo $two | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
+echo $three
 echo "Job ended `date`"
+
 END=$(date +%s)
 sec=$((END-START))
 min=$((sec/60))

@@ -13,6 +13,7 @@ module load gcc/5.3.1
 module load parallel/20170522
 
 # Export to a tmp folder with more space
+ulimit -u 10000
 export TMPDIR=/storage/home/htn5098/scratch/tmpBigdata #to avoid running out of space when running jobs in parallel
 
 echo "Job started on `hostname` at `date`"

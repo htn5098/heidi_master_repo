@@ -1,6 +1,6 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=8
-#PBS -l pmem=15gb
+#PBS -l nodes=1:ppn=10
+#PBS -l pmem=12gb
 #PBS -l walltime=02:00:00
 #PBS -A open
 #PBS -j oe
@@ -23,10 +23,14 @@ cd /storage/home/htn5098/work/DataAnalysis/src/jobs/
 
 # Information of GCM, period and variable
 gcm=$gcm
-period=$period
+period=${period[@]} 
+interimpath=$interimpath
+threshold=$threshold
 
-echo "Now it's time to run calculation for $gcm, $period"
-#Rscript ../Rcodes/CWD_PlantDate_estimation.R $interimpath $threshold $gcm $period
+for i in ${period[@]} 
+do
+  Rscript ../Rcodes/CWD_PlantDate_estimation.R $interimpath $threshold $gcm $i
+done
 
 echo "Extracting ends at `date`"
 END=$(date +%s)

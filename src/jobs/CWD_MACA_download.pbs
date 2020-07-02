@@ -22,12 +22,10 @@ START=$(date +%s)
 cd /storage/home/htn5098/work/DataAnalysis/src/jobs/
 
 # Information of GCM, period and variable
-gcm=$gcm # name of the GCM to process here
-period=${period[@]} #change names to wanted period
-echo ${period[@]}
-var=${var[@]} # change names to wanted climate variables
-echo ${var[@]}
-rawpath=$rawpath # path to storing downloaded raw GCMs
+gcm=$gcm 
+period=${period[@]} 
+var=${var[@]} 
+rawpath=$rawpath 
 
 # Creating helper functions
 function wget_create () {
@@ -79,27 +77,3 @@ END=$(date +%s)
 sec=$((END-START))
 min=$((sec/60))
 echo "Time elapsed: $min minutes"
-
-#	if test -f "../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh" # delete any existing files to avoid conflict
-#	then
-#		echo "Wget file exists"
-#		files=`awk '{print $7}' ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh`
-#		for i in ${files[@]}
-#		do
-#			if test -f "${rawpath}/$i"  # checking if files exist or not
-#			then
-#        echo "Nc file already exist"
-#			else
-#				echo "Nc file missing"
-#				rm ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
-#				touch ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
-#				echo "#!/bin/bash" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
-#				echo "cd $rawpath" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
-#				awk -v gcm=$gcm -v period=$period -v var=$var '$0~gcm && $0~period && $0~var {print}' ../wget_scripts/macav2metdata_allGCM_allvar_allperiod_wget.sh >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
-#				nline=`awk 'END {print NR}' ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh`
-#				echo $nline
-#				exit
-#			fi
-#		done
-#	else
-#		echo "Will create new wget file"
