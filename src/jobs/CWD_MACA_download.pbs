@@ -34,6 +34,10 @@ function wget_create () {
 	period=$3
 	var=$4
   echo "Creating wget script for $gcm $period $var"
+  if test -f "../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh"
+  then
+    rm ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
+  fi
 	touch ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
 	echo "#!/bin/bash" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
 	echo "cd $rawpath" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
