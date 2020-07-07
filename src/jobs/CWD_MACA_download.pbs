@@ -31,6 +31,7 @@ rawpath=$rawpath
 function wget_create () {
   rawpath=$1
   gcm=$2
+  finder=${gcm}_
 	period=$3
 	var=$4
   echo "Creating wget script for $gcm $period $var"
@@ -41,7 +42,7 @@ function wget_create () {
 	touch ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
 	echo "#!/bin/bash" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
 	echo "cd $rawpath" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
-	awk -v gcm=$gcm -v period=$period -v var=$var '$0~gcm && $0~period && $0~var {print}' ../wget_scripts/macav2metdata_allGCM_allvar_allperiod_wget.sh >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
+	awk -v gcm=$finder -v period=$period -v var=$var '$0~gcm && $0~period && $0~var {print}' ../wget_scripts/macav2metdata_allGCM_allvar_allperiod_wget.sh >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
 }
 function bash_wget () {
   rawpath=$1
@@ -74,7 +75,7 @@ parallel bash_wget $rawpath $gcm ::: ${period[@]} ::: ${var[@]}
 wait 
 
 # Checking all the downloaded files
-parallel check_file $rawpath $gcm ::: ${period[@]} ::: ${var[@]}
+parallel check_file $rawpath $gcm ::: ${period[@]} ::: ${var[@]} > Checkfile_${gcm}_download.txt
 
 echo "Job ended `date`"
 END=$(date +%s)
