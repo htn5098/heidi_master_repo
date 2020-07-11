@@ -33,8 +33,7 @@ cl <- makeCluster(no_cores)
 registerDoParallel(cl)
 
 # EXTRACTING DATA FROM THE .NC FILES TO MATRIX FORM
-outname <- paste0(interimpath,'/interim_',
-                  gcm,'_',period,'_',var)
+outname <- paste0(interimpath,'/interim_', gcm,'_',period,'_',var)
 if (file.exists(outname)) {
   cat(outname, 'already exists\n')
 } else {

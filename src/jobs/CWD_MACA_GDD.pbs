@@ -1,0 +1,66 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=1
+#PBS -l pmem=2gb
+#PBS -l walltime=02:00:00
+#PBS -A open
+#PBS -j oe
+#PBS -N MACA_GDD #MACA GCM downloaded from GridMET 
+
+# Loading modules
+module purge
+module load r
+module load gcc/5.3.1
+module load parallel/20170522
+
+# Export to a tmp folder with more space
+export TMPDIR=/storage/home/htn5098/scratch/tmpBigdata #to avoid running out of space when running jobs in parallel
+
+echo "Job started on `hostname` at `date`"
+START=$(date +%s)
+
+# Go to the directory
+cd /storage/home/htn5098/work/DataAnalysis/src/jobs/
+
+# Information of GCM, period and variable
+#line=$line
+#gcm=`awk -v line=$PBS_ARRAYID 'NR==line {print $1}' ../../data/external/MACA_GCMs.txt` # reading the name of the GCM from a .txt file
+gcm=MRI-CGCM3_r1i1p1 # name of the GCM to process here
+period=(historical rcp45 rcp85) #change names to wanted period
+var=(tasmin tasmax) # change names to wanted climate variables 
+rawpath=/storage/home/htn5098/scratch/DataAnalysis/data/raw/GridMET_MACA
+interimpath=/storage/home/htn5098/scratch/DataAnalysis/data/interim
+threshold=10
+
+# Removing downloaded files that has size 0 (0gb files are usually due to error in connection when downloading)
+find $rawpath -size 0 -delete
+
+# Download GCMs data
+one=`qsub -v "gcm=$gcm,period=${period[@]},var=${var[@]},rawpath=$rawpath" CWD_MACA_download.pbs`
+oneID=`echo $one | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
+echo $one
+
+# Extract relevant climate variables from .nc file
+two=`qsub -v "gcm=$gcm,period=${period[@]},var=${var[@]},rawpath=$rawpath,interimpath=$interimpath" CWD_MACA_extract.pbs -W depend=afterok:$oneID` 
+twoID=`echo $two | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
+echo $two
+
+# Aggregating tmean to the county level
+three=`qsub -v "gcm=$gcm,period=${period[@]},interimpath=$interimpath" CWD_Tmean_aggr.pbs -W depend=afterok:$twoID` 
+threeID=`echo $three | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
+echo $two
+
+# Calculate planting date
+#three=`qsub -v "gcm=$gcm,period=${period[@]},interimpath=$interimpath,threshold=$threshold" CWD_MACA_pldcal.pbs -W depend=afterok:$oneID:$twoID`
+#threeID=`echo $two | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
+#echo $three
+
+# Calculating GDD 
+#four=
+#fourID
+#echo $four
+
+echo "Job ended `date`"
+END=$(date +%s)
+sec=$((END-START))
+min=$((sec/60))
+echo "Time elapsed: $min minutes"
