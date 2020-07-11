@@ -11,4 +11,4 @@ job*.pbs
 *.Rhistory
 *.RData
 /src/jobs/sample_codes/
-/wget_scripts/
+/src/wget_scripts/
