@@ -23,6 +23,7 @@ cd /storage/home/htn5098/work/DataAnalysis/src/jobs/
 
 # Information of GCM, period and variable
 gcm=`awk -v line=$PBS_ARRAYID 'NR==line {print $1}' ../../data/external/MACA_GCMs.txt` # reading the name of the GCM from a .txt file
+echo $gcm
 period=(historical rcp45 rcp85) #change names to wanted period
 var=(tasmin tasmax) # change names to wanted climate variables 
 rawpath=/storage/home/htn5098/scratch/DataAnalysis/data/raw/GridMET_MACA

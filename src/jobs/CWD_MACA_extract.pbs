@@ -38,7 +38,7 @@ do
   done
 done
 
-#parallel Rscript ../Rcodes/GridMETMACA_extract_var.R 1 1 -1 -1 $rawpath $interimpath $gcm ::: ${period[@]} ::: ${var[@]}
+#parallel --jobs 2 Rscript ../Rcodes/GridMETMACA_extract_var.R 1 1 -1 -1 $rawpath $interimpath $gcm ::: ${period[@]} ::: ${var[@]}
 
 echo "Extracting ends at `date`"
 END=$(date +%s)
