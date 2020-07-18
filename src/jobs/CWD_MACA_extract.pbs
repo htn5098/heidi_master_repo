@@ -30,15 +30,15 @@ rawpath=$rawpath
 interimpath=$interimpath
 #i=$PBS_ARRAYID
 
-for i in ${period[@]} 
-do
-  for j in ${var[@]}
-  do 
-    Rscript ../Rcodes/GridMETMACA_extract_var.R 1 1 -1 -1 $rawpath $interimpath $gcm $i $j
-  done
-done
+#for i in ${period[@]} 
+#do
+#  for j in ${var[@]}
+#  do 
+#    Rscript ../Rcodes/GridMETMACA_extract_var.R 1 1 -1 -1 $rawpath $interimpath $gcm $i $j
+#  done
+#done
 
-#parallel --jobs 2 Rscript ../Rcodes/GridMETMACA_extract_var.R 1 1 -1 -1 $rawpath $interimpath $gcm ::: ${period[@]} ::: ${var[@]}
+parallel --jobs 3 Rscript ../Rcodes/GridMETMACA_extract_var.R 1 1 -1 -1 $rawpath $interimpath $gcm ::: ${period[@]} ::: ${var[@]}
 
 echo "Extracting ends at `date`"
 END=$(date +%s)
