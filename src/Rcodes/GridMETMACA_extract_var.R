@@ -34,16 +34,15 @@ registerDoParallel(cl)
 
 # EXTRACTING DATA FROM THE .NC FILES TO MATRIX FORM
 outname <- paste0(interimpath,'/interim_', gcm,'_',period,'_',var)
-if (file.exists(outname)) {
+if (file.exists(paste0(outname,'.bmat')) & file.exists(paste0(outname,'.desc.txt'))) {
   cat(outname, 'already exists\n')
 } else {
   cat("\nStart extracting data\n")
   files=list.files(path=rawpath,pattern = paste0('.*',var,'.*',gcm,'.*',period), 
                    full.names = T) 
   invisible(clusterEvalQ(cl,.libPaths("/storage/home/htn5098/local_lib/R35"))) # Really have to import library paths into the workers
-  #clusterExport(cl,list('ncarray2matrix','start','count')) #expporting data into clusters for parallel processing
-  matrix.var=foreach(i = files,.combine = rbind,.packages = c('ncdf4'),
-                     .export = c('ncarray2matrix','start','count')) %dopar% {
+  #clusterExport(cl,list('ncarray2matrix','start','count')) #exporting data into clusters for parallel processing
+  matrix.var=foreach(i = files,.combine = rbind) %do% {
                        #library(ncdf4)
                        filename=paste0(i)
                        nc=nc_open(filename)
@@ -55,7 +54,8 @@ if (file.exists(outname)) {
   cat("\nDimensions of the file")
   dim(matrix.var)
 }
-
+# .packages = c('ncdf4')
+# .export = c('ncarray2matrix','start','count')
 output = fm.create.from.matrix(outname,matrix.var)
 close(output)
 print("Finished extracting data")
