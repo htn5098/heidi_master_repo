@@ -1,6 +1,7 @@
-# *** AGGREGATING DATA ***
+# *** AGGREGATING TMEAN DATA ***
 # AUTHOR: HEIDI NGUYEN 
 # email: htn5098@psu.edu
+
 inputs=commandArgs(trailingOnly = T)
 interimpath=as.character(inputs[1])
 gcm=as.character(inputs[2])
@@ -30,7 +31,7 @@ registerDoParallel(cl)
 
 # PROCESSING DATA
 outname=paste0(interimpath,'/interim_', gcm,'_',period,'_tmean')
-if (file.exists(outname)) {
+if (file.exists(paste0(outname,'.bmat')) & file.exists(paste0(outname,'.desc.txt'))) {
   print("Tmean matrix already exists")
 } else {
   print("Starting aggregating Tmean")
@@ -48,10 +49,10 @@ if (file.exists(outname)) {
   dim(tmean)
   # AGGREGATE GRIDS TO COUNTY
   print("Start aggregating")
-  invisible(clusterEvalQ(cl,.libPaths("/storage/home/htn5098/local_lib/R35"))) # Really have to import library paths into the workers
+  # invisible(clusterEvalQ(cl,.libPaths("/storage/home/htn5098/local_lib/R35"))) # Really have to import library paths into the workers
   # After several trials, using %dopar% is actually slower and more error-prone than using %do%
   # using %do% thus no need for clusterExport
-  county.data <- foreach(i = county, .combine = cbind) %dopar% { 
+  county.data <- foreach(i = county, .combine = cbind) %do% { 
     d <- aggr_data(gridpoint=spfile,county=i,data=tmean)
     return(d)
   }
