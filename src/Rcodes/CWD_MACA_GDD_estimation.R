@@ -1,6 +1,7 @@
 # *** AGGREGATING DATA ***
 # AUTHOR: HEIDI NGUYEN 
 # email: htn5098@psu.edu
+
 inputs=commandArgs(trailingOnly = T)
 interimpath=as.character(inputs[1])
 crop=inputs[2]
@@ -9,7 +10,7 @@ threshold2=as.numeric(inputs[4])
 gcm=as.character(inputs[5])
 period=as.character(inputs[6])
 cat('\n\n GDD estimation of', crop, 'for',c(gcm, period),' for threshold',
-    threshold,'oC\n')
+    threshold,'-',threshold2,'oC\n')
 
 # CHANGING LIBRARY PATH
 .libPaths("/storage/home/htn5098/local_lib/R35") # needed for calling packages
@@ -31,6 +32,7 @@ library(lubridate)
 no_cores <- detectCores()
 cl <- makeCluster(no_cores)
 registerDoParallel(cl)
+invisible(clusterEvalQ(cl,.libPaths("/storage/home/htn5098/local_lib/R35"))) # Really have to import library paths into the workers
 
 # READING INPUT AND SUPPORTING DATA FILES
 thresholdname = gsub('[.]','',as.character(threshold))
@@ -44,57 +46,67 @@ if (period == 'historical') {
 }
 startDate <- as.Date(paste0(startyear,"-01-01"),'%Y-%m-%d')
 # Input data
-tmean.county <- fm.load(interimpath,'/interim_', gcm,'_',period,'_tmean')
-time <- seq.Date(from=startDate,length.out = nrow(tmean),by="day")# using year as factor to split the county data into a list according to years later
-county=sort(unique(names(tmean.couty)))
+tmean.county <- fm.load(paste0(interimpath,'/interim_', gcm,'_',period,'_tmean'))
+dim(tmean.county)
+time <- seq.Date(from=startDate,length.out = nrow(tmean.county),by="day")# using year as factor to split the county data into a list according to years later
+county=colnames(tmean.county)
 
 # ESTIMATING GDD
 county.gdddaily <- ifelse(tmean.county < threshold,0,
                           ifelse(tmean.county>threshold2,threshold2-threshold,
                                  tmean.county-threshold))
 ## Estimating GDD for the fixed growing season length (planting date till 6 months later)
-print("GDD for the fixed growing season length")
-county.gddfixed <- foreach(i = 1:ncol(tmean.county),.combine=rbind,
-                           .packages=c('lubridate')) %do% {
-  # coding the T values into binary values:
-  ls <- split(county.gdddaily[,i],f=year(time))
-  years <- names(ls)
-  cumm.gdd <- foreach(j = seq_along(ls),.combine=rbind) %do% {
-    doy <- pldfile$PLD[pldfile$COUNTYNS==county[i] &
-                         pldfile$Year==as.numeric(ls[j])]
-    t = sum(ls[[j]][doy,(doy+170)]) # 170 is the calendar length of the growing season for corn
-    cgdd <- data.frame(COUNTYNS = county[i], Period = period,
-                       Year = years[j],GDD=t) 
-  }
-                           }
-head(county.gddfixed[,1:10])
-## Estimating growing season length for 2700 GDD hybrid
-print("Length of growing season length for 2700 GDD")
-county.gsl <- foreach(i = 1:ncol(county.data),.combine=rbind,
-                           .packages=c('lubridate')) %do% {
-  # coding the T values into binary values:
-  ls <- split(county.gdddaily[,i],f=year(time))
-  years <- names(ls)
-  cumm.gdd <- foreach(j = seq_along(ls),.combine=rbind) %do% {
-    doy <- pldfile$PLD[pldfile$COUNTYNS==names(county.data)[i] &
-                         pldfile$Year==as.numeric(ls[j])]
-    lastday <- max(which(cumsum(t = sum(ls[[j]][doy,
-                                                length(ls[[j]])]) < 2700)))
-    len=(lastday-doy+1)
-    lgdd <- data.frame(COUNTYNS = county[i], Period = period,
-               Year = years[j],GSL=len) 
-  }
+if (file.exists(paste0('./data/processed/GridMET_',gcm,'_',
+           period,'_gddfixed_county_',crop,'.csv'))) {
+  print("GDD for the fixed growing season length file exists")
+} else{
+  print("GDD for the fixed growing season length")
+  county.gddfixed <- foreach(i = 1:ncol(county.gdddaily),.combine=rbind,
+                             .packages=c('lubridate')) %dopar% {
+                               # coding the T values into binary values:
+                               # coding the T values into binary values:
+                               ls <- split(county.gdddaily[,i],f=year(time))
+                               years <- names(ls)
+                               cgdd <- sapply(seq_along(ls),function(j) {
+                                 doy <- pldfile$PLD[pldfile$COUNTYNS==county[i] &
+                                                      pldfile$Year==as.numeric(years[j])]
+                                 t = sum(ls[[j]][doy:(doy+170)]) # 170 is the calendar length of the growing season for corn
+                               })
+                               cumm.gdd <- data.frame(COUNTYNS = county[i], Period = period,
+                                                      Year = years,GDD=cgdd)
+                             }
+  head(county.gddfixed[,1:10])
+  write.csv(county.gddfixed,
+            paste0('./data/processed/GridMET_',gcm,'_',
+                   period,'_gddfixed_county_',crop,'.csv'),row.names = F)
+  print("Finshed calculating seasonal GDD")
 }
-head(county.gsl[,1:10])
-print("Finshed calculating seasonal GDD")
-write.csv(county.gddfixed,
-          paste0('./data/processed/GridMET_',gcm,'_',
-                 period,'_gddfixed_county_',crop,'.csv'),row.names = F)
-write.csv(county.gddfixed,
-          paste0('./data/processed/GridMET_',gcm,'_',
-                 period,'_gddfixed_county_',crop,'.csv'),row.names = F)
-write.csv(county.gsl,
-          paste0('./data/processed/GridMET_',gcm,'_',
-                 period,'_gsl_county_',crop,'.csv'),row.names = F)
+  
+## Estimating growing season length for 2700 GDD hybrid
+if(file.exists(paste0('./data/processed/GridMET_',gcm,'_',
+                      period,'_gsl_county_',crop,'.csv'))) {
+  print("Length of growing season length for 2700 GDD file exists")
+} else {
+  print("Length of growing season length for 2700 GDD")
+  county.gsl <- foreach(i = 1:ncol(county.gdddaily),.combine=rbind,
+                        .packages=c('lubridate')) %do% {
+                          # coding the T values into binary values:
+                          ls <- split(county.gdddaily[,i],f=year(time))
+                          years <- names(ls)
+                          gdd2700 <- sapply(seq_along(ls),function(j) {
+                            doy <- pldfile$PLD[pldfile$COUNTYNS==county[i] &
+                                                 pldfile$Year==as.numeric(years[j])]
+                            len <- sum(cumsum(ls[[j]][doy:length(ls[[j]])]) < 2700) + 1
+                          })
+                          len2700 <- data.frame(COUNTYNS = county[i], Period = period,
+                                                Year = years,GSL=gdd2700)
+                          }
+                        }
+  head(county.gsl[,1:10])
+  write.csv(county.gsl,
+            paste0('./data/processed/GridMET_',gcm,'_',
+                   period,'_gsl_county_',crop,'.csv'),row.names = F)
+  print("Finshed calculating seasonal GDD")
+}
 close(tmean)
 stopCluster(cl)
