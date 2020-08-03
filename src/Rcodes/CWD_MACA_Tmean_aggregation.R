@@ -2,6 +2,7 @@
 # AUTHOR: HEIDI NGUYEN 
 # email: htn5098@psu.edu
 
+# INPUTS
 inputs=commandArgs(trailingOnly = T)
 interimpath=as.character(inputs[1])
 gcm=as.character(inputs[2])
@@ -35,9 +36,10 @@ if (file.exists(paste0(outname,'.bmat')) & file.exists(paste0(outname,'.desc.txt
   print("Tmean matrix already exists")
 } else {
   print("Starting aggregating Tmean")
+  
   # READING INPUT AND SUPPORTING DATA FILES
   spfile <- read.csv('./data/external/SDMACA4km.txt',header=T) # files for COUNTYNS, grid cell and grid area weight 
-  grids <- sort(unique(spfile$Grids)) # all unique grids
+  grids <- sort(unique(spfile$Grid)) # all unique grids
   county <- sort(unique(spfile$COUNTYNS)) # all unique counties
   # Input data
   tx = fm.load(paste0(interimpath,'/interim_',
@@ -47,6 +49,7 @@ if (file.exists(paste0(outname,'.bmat')) & file.exists(paste0(outname,'.desc.txt
   tmean = (tx + tn)/2 - 273.15 # transforming data K degrees to C degrees
   cat('\n Dimension of tmean:')
   dim(tmean)
+  
   # AGGREGATE GRIDS TO COUNTY
   print("Start aggregating")
   # invisible(clusterEvalQ(cl,.libPaths("/storage/home/htn5098/local_lib/R35"))) # Really have to import library paths into the workers
@@ -56,9 +59,10 @@ if (file.exists(paste0(outname,'.bmat')) & file.exists(paste0(outname,'.desc.txt
     d <- aggr_data(gridpoint=spfile,county=i,data=tmean)
     return(d)
   }
-  print("Fnished aggregating")
+  colnames(county.data) <- as.character(county)
+  print("Finished aggregating")
   head(county.data[,1:10])
-  output = fm.create.from.matrix(outname,tmean)
+  output = fm.create.from.matrix(outname,county.data)
 }
 
 stopCluster(cl)

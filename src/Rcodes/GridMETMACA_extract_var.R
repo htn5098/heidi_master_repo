@@ -35,7 +35,7 @@ registerDoParallel(cl)
 # EXTRACTING DATA FROM THE .NC FILES TO MATRIX FORM
 outname <- paste0(interimpath,'/interim_', gcm,'_',period,'_',var)
 if (file.exists(paste0(outname,'.bmat')) & file.exists(paste0(outname,'.desc.txt'))) {
-  cat(outname, 'already exists\n')
+  cat('\nFile already exists\n')
 } else {
   cat("\nStart extracting data\n")
   files=list.files(path=rawpath,pattern = paste0('.*',var,'.*',gcm,'.*',period), 
@@ -53,11 +53,9 @@ if (file.exists(paste0(outname,'.bmat')) & file.exists(paste0(outname,'.desc.txt
                      }
   cat("\nDimensions of the file")
   dim(matrix.var)
+  output = fm.create.from.matrix(outname,matrix.var)
+  close(output)
+  print("Finished extracting data")
 }
-# .packages = c('ncdf4')
-# .export = c('ncarray2matrix','start','count')
-output = fm.create.from.matrix(outname,matrix.var)
-close(output)
-print("Finished extracting data")
 
 stopCluster(cl)

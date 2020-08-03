@@ -59,8 +59,8 @@ county.gdddaily <- ifelse(tmean.county < threshold,0,
 if (file.exists(paste0('./data/processed/GridMET_',gcm,'_',
            period,'_gddfixed_county_',crop,'.csv'))) {
   print("GDD for the fixed growing season length file exists")
-} else{
-  print("GDD for the fixed growing season length")
+} else {
+  print("GDD for the fixed growing season length") #.packages=c('lubridate')
   county.gddfixed <- foreach(i = 1:ncol(county.gdddaily),.combine=rbind,
                              .packages=c('lubridate')) %dopar% {
                                # coding the T values into binary values:
@@ -75,8 +75,8 @@ if (file.exists(paste0('./data/processed/GridMET_',gcm,'_',
                                cumm.gdd <- data.frame(COUNTYNS = county[i], Period = period,
                                                       Year = years,GDD=cgdd)
                              }
-  head(county.gddfixed[,1:10])
-  write.csv(county.gddfixed,
+  dim(county.gddfixed)
+  fwrite(county.gddfixed,
             paste0('./data/processed/GridMET_',gcm,'_',
                    period,'_gddfixed_county_',crop,'.csv'),row.names = F)
   print("Finshed calculating seasonal GDD")
@@ -89,7 +89,7 @@ if(file.exists(paste0('./data/processed/GridMET_',gcm,'_',
 } else {
   print("Length of growing season length for 2700 GDD")
   county.gsl <- foreach(i = 1:ncol(county.gdddaily),.combine=rbind,
-                        .packages=c('lubridate')) %do% {
+                        .packages=c('lubridate')) %dopar% {
                           # coding the T values into binary values:
                           ls <- split(county.gdddaily[,i],f=year(time))
                           years <- names(ls)
@@ -101,12 +101,11 @@ if(file.exists(paste0('./data/processed/GridMET_',gcm,'_',
                           len2700 <- data.frame(COUNTYNS = county[i], Period = period,
                                                 Year = years,GSL=gdd2700)
                           }
-                        }
-  head(county.gsl[,1:10])
-  write.csv(county.gsl,
+  dim(county.gsl)
+  fwrite(county.gsl,
             paste0('./data/processed/GridMET_',gcm,'_',
                    period,'_gsl_county_',crop,'.csv'),row.names = F)
   print("Finshed calculating seasonal GDD")
 }
-close(tmean)
+
 stopCluster(cl)

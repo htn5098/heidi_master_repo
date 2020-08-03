@@ -14,12 +14,12 @@ ncarray2matrix <- function(nc.var){
 # Function to aggregate data
 aggr_data <- function(gridpoint,county,data) {
   pointid <- gridpoint$Grid[gridpoint$COUNTYNS == county]
-  wt <- gridpoint$Area[gridpoint$COUNTYNS == county]
+  wt <- gridpoint$Area[gridpoint$COUNTYNS == county]/sum(gridpoint$Area[gridpoint$COUNTYNS == county])
   var <- data[,pointid]
   if(is.null(dim(var))) {
     aggr = 0
   } else { 
-    aggr <- apply(var,1,weighted.mean,w = wt,na.rm = T)
+    aggr <- var%*%wt #apply(var,1,weighted.mean,w = wt,na.rm = T)
   }
   return(aggr)
 }

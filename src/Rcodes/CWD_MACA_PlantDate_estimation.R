@@ -1,6 +1,8 @@
 # *** AGGREGATING DATA ***
 # AUTHOR: HEIDI NGUYEN 
 # email: htn5098@psu.edu
+
+# INPUTS
 inputs=commandArgs(trailingOnly = T)
 interimpath=as.character(inputs[1])
 threshold=as.numeric(inputs[2])
@@ -39,7 +41,7 @@ if (file.exists(filename)) {
 } else {
   # READING INPUT AND SUPPORTING DATA FILES
   spfile <- read.csv('./data/external/SDMACA4km.txt',header=T) # files for COUNTYNS, grid cell and grid area weight 
-  grids <- sort(unique(spfile$Grids)) # all unique grids
+  grids <- sort(unique(spfile$Grid)) # all unique grids
   county <- sort(unique(spfile$COUNTYNS)) # all unique counties
   if (period == 'historical') {
     startyear = 1950
@@ -48,31 +50,21 @@ if (file.exists(filename)) {
   }
   startDate <- as.Date(paste0(startyear,"-01-01"),'%Y-%m-%d')
   # Input data
-  tx = fm.load(paste0(interimpath,'/interim_',
-                      gcm,'_',period,'_tasmax')) # maximum temperature matrix
-  tn = fm.load(paste0(interimpath,'/interim_',
-                      gcm,'_',period,'_tasmin')) # minimum temperature matrix
-  tmean = (tx + tn)/2 - 273.15 # transforming data K degrees to C degrees
+  tmean.county = fm.load(paste0(interimpath,'/interim_',gcm,'_',period,'_tmean'))
+  # tx = fm.load(paste0(interimpath,'/interim_',
+  #                     gcm,'_',period,'_tasmax')) # maximum temperature matrix
+  # tn = fm.load(paste0(interimpath,'/interim_',
+  #                     gcm,'_',period,'_tasmin')) # minimum temperature matrix
+  # tmean = (tx + tn)/2 - 273.15 # transforming data K degrees to C degrees
   cat('\n Dimension of tmean:')
-  dim(tmean)
-  time <- seq.Date(from=startDate,length.out = nrow(tmean),by="day")# using year as factor to split the county data into a list according to years later
-  
-  # AGGREGATE GRIDS TO COUNTY
-  print("Start aggregating")
-  invisible(clusterEvalQ(cl,.libPaths("/storage/home/htn5098/local_lib/R35"))) # Really have to import library paths into the workers
-  # After several trials, using %dopar% is actually slower and more error-prone than using %do%
-  # using %do% thus no need for clusterExport
-  county.data <- foreach(i = county, .combine = cbind) %do% { 
-    d <- aggr_data(gridpoint=spfile,county=i,data=tmean)
-    return(d)
-  }
-  print("Fnished aggregating")
+  dim(tmean.county)
+  time <- seq.Date(from=startDate,length.out = nrow(tmean.county),by="day")# using year as factor to split the county data into a list according to years later
   
   # FINDING PERIODS OF TWO WEEKS MORE THAN A THRESHOLD
   print("Start finding sowing date")
-  county.pldate <- foreach(i = 1:ncol(county.data),.combine=rbind) %do% {
+  county.pldate <- foreach(i = 1:ncol(tmean.county),.combine=rbind) %do% {
     # coding the T values into binary values:
-    l <- ifelse(county.data[,i]>=threshold,1,0)
+    l <- ifelse(tmean.county[,i]>=threshold,1,0)
     ls <- split(l,f=year(time))
     years <- names(ls)
     pld <- foreach(j = seq_along(ls),.combine=rbind) %do% {
