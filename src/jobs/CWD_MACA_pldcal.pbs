@@ -27,10 +27,12 @@ period=${period[@]}
 interimpath=$interimpath
 threshold=$threshold
 
-for i in ${period[@]} 
-do
-  Rscript ../Rcodes/CWD_PlantDate_estimation.R $interimpath $threshold $gcm $i
-done
+#for i in ${period[@]} 
+#do
+#  Rscript ../Rcodes/CWD_PlantDate_estimation.R $interimpath $threshold $gcm $i
+#done
+
+parallel --jobs 1 Rscript ../Rcodes/CWD_MACA_PlantDate_estimation.R $interimpath $threshold $threshold2 $gcm ::: ${period[@]}
 
 echo "Extracting ends at `date`"
 END=$(date +%s)

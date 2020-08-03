@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=8
-#PBS -l pmem=15gb
+#PBS -l pmem=16gb
 #PBS -l walltime=02:00:00
 #PBS -A open
 #PBS -j oe
@@ -38,7 +38,7 @@ interimpath=$interimpath
 #  done
 #done
 
-parallel --jobs 3 Rscript ../Rcodes/GridMETMACA_extract_var.R 1 1 -1 -1 $rawpath $interimpath $gcm ::: ${period[@]} ::: ${var[@]}
+parallel --jobs 2 Rscript ../Rcodes/GridMETMACA_extract_var.R 1 1 -1 -1 $rawpath $interimpath $gcm ::: ${period[@]} ::: ${var[@]}
 
 echo "Extracting ends at `date`"
 END=$(date +%s)

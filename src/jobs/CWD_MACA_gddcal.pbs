@@ -1,6 +1,6 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=10
-#PBS -l pmem=12gb
+#PBS -l nodes=1:ppn=8
+#PBS -l pmem=16gb
 #PBS -l walltime=02:00:00
 #PBS -A open
 #PBS -j oe
@@ -31,10 +31,12 @@ crop=$crop
 
 #for i in ${period[@]} 
 #do
-#  Rscript ../Rcodes/CWD_PlantDate_estimation.R $interimpath $threshold $gcm $i
+#  Rscript ../Rcodes/CWD_MACA_GDD_estimation.R $interimpath $crop $threshold $threshold2 $gcm $i
 #done
 
-parallel --jobs 1 Rscript ../Rcodes/CWD_MACA_GDD_estimation.R $interimpath $crop $threshold $threshold2 $gcm ::: ${period[@]}
+parallel Rscript ../Rcodes/CWD_MACA_GDD_estimation.R $interimpath $crop $threshold $threshold2 $gcm ::: ${period[@]}
+
+#Rscript ../Rcodes/CWD_MACA_GDD_estimation.R $interimpath $crop $threshold $threshold2 $gcm rcp45 #::: ${period[@]}
 
 echo "Extracting ends at `date`"
 END=$(date +%s)
