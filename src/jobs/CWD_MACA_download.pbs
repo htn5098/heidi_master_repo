@@ -71,7 +71,8 @@ find $rawpath -size 0 -delete
 
 # Creating a download script for multiple years for the GCM, periods and variables selected
 parallel wget_create $rawpath $gcm ::: ${period[@]} ::: ${var[@]}
-parallel bash_wget $rawpath $gcm ::: ${period[@]} ::: ${var[@]}
+wait
+parallel --jobs 2 bash_wget $rawpath $gcm ::: ${period[@]} ::: ${var[@]}
 wait 
 
 # Checking all the downloaded files
