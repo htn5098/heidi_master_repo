@@ -38,7 +38,7 @@ if (file.exists(paste0(outname,'.bmat')) & file.exists(paste0(outname,'.desc.txt
   cat('\nFile already exists\n')
 } else {
   cat("\nStart extracting data\n")
-  files=list.files(path=rawpath,pattern = paste0('.*',var,'.*',gcm,'.*',period), 
+  files=list.files(path=rawpath,pattern = paste0('.*',var,'.*',gcm,'_','.*',period), 
                    full.names = T) 
   invisible(clusterEvalQ(cl,.libPaths("/storage/home/htn5098/local_lib/R35"))) # Really have to import library paths into the workers
   #clusterExport(cl,list('ncarray2matrix','start','count')) #exporting data into clusters for parallel processing
