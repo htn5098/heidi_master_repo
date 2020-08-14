@@ -4,7 +4,7 @@
 #PBS -l walltime=02:00:00
 #PBS -A open
 #PBS -j oe
-#PBS -N MACA_dl #MACA GCM downloaded from GridMET 
+#PBS -N GMET_dl #Historical data downloaded from GridMET 
 
 # Loading modules
 module purge
@@ -39,7 +39,7 @@ function wget_create () {
   then
     rm ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
   fi
-	touch ../wget_scripts/GridMET_${gcm}${period}_${var}_download.sh
+	touch ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
 	echo "#!/bin/bash" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
 	echo "cd $rawpath" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
 	awk -v gcm=$finder -v period=$period -v var=$var '$0~gcm && $0~period && $0~var {print}' ../wget_scripts/macav2metdata_allGCM_allvar_allperiod_wget.sh >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
