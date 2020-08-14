@@ -59,7 +59,7 @@ threeID=`echo $three | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)
 echo $three
 
 # Calculate planting date
-four=`qsub -v "gcm=$gcm,period=${period[@]},interimpath=$interimpath,threshold=$threshold" CWD_MACA_pldcal.pbs -W depend=afterok:$twoID:$threeID`
+four=`qsub -v "gcm=$gcm,period=${period[@]},interimpath=$intericlearmpath,threshold=$threshold" CWD_MACA_pldcal.pbs -W depend=afterok:$twoID:$threeID`
 fourID=`echo $four | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
 echo $four
 

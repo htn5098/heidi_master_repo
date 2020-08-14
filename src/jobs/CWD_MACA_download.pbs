@@ -39,7 +39,7 @@ function wget_create () {
   then
     rm ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
   fi
-	touch ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
+	touch ../wget_scripts/GridMET_${gcm}${period}_${var}_download.sh
 	echo "#!/bin/bash" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
 	echo "cd $rawpath" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
 	awk -v gcm=$finder -v period=$period -v var=$var '$0~gcm && $0~period && $0~var {print}' ../wget_scripts/macav2metdata_allGCM_allvar_allperiod_wget.sh >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
@@ -55,11 +55,12 @@ function bash_wget () {
 function check_file () {
   rawpath=$1
   gcm=$2
+  finder=${gcm}_
 	period=$3
 	var=$4
   cd $rawpath
   printf "\n Downloaded files for $gcm $period $var \n"
-  ls -l | awk -v gcm=$gcm -v period=$period -v var=$var '$0~gcm && $0~period && $0~var {print $5, $9}' 
+  ls -l | awk -v gcm=$finder -v period=$period -v var=$var '$0~gcm && $0~period && $0~var {print $5, $9}' 
   printf "\n" 
 }
 export -f wget_create
@@ -68,6 +69,8 @@ export -f check_file
 
 # Removing downloaded files that has size 0
 find $rawpath -size 0 -delete
+
+# Hello, this works
 
 # Creating a download script for multiple years for the GCM, periods and variables selected
 parallel wget_create $rawpath $gcm ::: ${period[@]} ::: ${var[@]}

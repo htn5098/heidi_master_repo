@@ -31,7 +31,7 @@ cd /storage/home/htn5098/work/DataAnalysis/src/jobs/
 # Information of GCM, period and variable
 gcm=`awk -v line=$line 'NR==line {print $1}' ../../data/external/MACA_GCMs.txt` # reading the name of the GCM from a .txt file
 echo "Processing for $gcm"
-#gcm=MRI-CGCM3 # name of the GCM to process here
+#gcm=MIROC-ESM # name of the GCM to process here
 period=(historical rcp45 rcp85) #change names to wanted period
 var=(tasmin tasmax) # change names to wanted climate variables 
 rawpath=/storage/home/htn5098/scratch/DataAnalysis/data/raw/GridMET_MACA
