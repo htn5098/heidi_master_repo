@@ -41,7 +41,7 @@ if (file.exists(filename)) {
 } else {
   # READING INPUT AND SUPPORTING DATA FILES
   spfile <- read.csv('./data/external/SDMACA4km.txt',header=T) # files for COUNTYNS, grid cell and grid area weight 
-  grids <- sort(unique(spfile$Grid)) # all unique grids
+  #grids <- sort(unique(spfile$Grid)) # all unique grids
   county <- sort(unique(spfile$COUNTYNS)) # all unique counties
   if (period == 'historical') {
     startyear = 1950
@@ -51,13 +51,7 @@ if (file.exists(filename)) {
   startDate <- as.Date(paste0(startyear,"-01-01"),'%Y-%m-%d')
   # Input data
   tmean.county = fm.load(paste0(interimpath,'/interim_',gcm,'_',period,'_tmean'))
-  # tx = fm.load(paste0(interimpath,'/interim_',
-  #                     gcm,'_',period,'_tasmax')) # maximum temperature matrix
-  # tn = fm.load(paste0(interimpath,'/interim_',
-  #                     gcm,'_',period,'_tasmin')) # minimum temperature matrix
-  # tmean = (tx + tn)/2 - 273.15 # transforming data K degrees to C degrees
-  cat('\n Dimension of tmean:')
-  dim(tmean.county)
+  cat('\n Dimension of tmean:',dim(tmean.county),'\n')
   time <- seq.Date(from=startDate,length.out = nrow(tmean.county),by="day")# using year as factor to split the county data into a list according to years later
   
   # FINDING PERIODS OF TWO WEEKS MORE THAN A THRESHOLD

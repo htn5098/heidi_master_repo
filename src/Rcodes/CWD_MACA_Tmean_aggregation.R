@@ -39,7 +39,7 @@ if (file.exists(paste0(outname,'.bmat')) & file.exists(paste0(outname,'.desc.txt
   
   # READING INPUT AND SUPPORTING DATA FILES
   spfile <- read.csv('./data/external/SDMACA4km.txt',header=T) # files for COUNTYNS, grid cell and grid area weight 
-  grids <- sort(unique(spfile$Grid)) # all unique grids
+  #grids <- sort(unique(spfile$Grid)) # all unique grids
   county <- sort(unique(spfile$COUNTYNS)) # all unique counties
   # Input data
   tx = fm.load(paste0(interimpath,'/interim_',

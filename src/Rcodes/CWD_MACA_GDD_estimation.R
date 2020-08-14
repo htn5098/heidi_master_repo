@@ -75,7 +75,6 @@ if (file.exists(paste0('./data/processed/GridMET_',gcm,'_',
                                cumm.gdd <- data.frame(COUNTYNS = county[i], Period = period,
                                                       Year = years,GDD=cgdd)
                              }
-  dim(county.gddfixed)
   fwrite(county.gddfixed,
             paste0('./data/processed/GridMET_',gcm,'_',
                    period,'_gddfixed_county_',crop,'.csv'),row.names = F)
@@ -101,7 +100,6 @@ if(file.exists(paste0('./data/processed/GridMET_',gcm,'_',
                           len2700 <- data.frame(COUNTYNS = county[i], Period = period,
                                                 Year = years,GSL=gdd2700)
                           }
-  dim(county.gsl)
   fwrite(county.gsl,
             paste0('./data/processed/GridMET_',gcm,'_',
                    period,'_gsl_county_',crop,'.csv'),row.names = F)
