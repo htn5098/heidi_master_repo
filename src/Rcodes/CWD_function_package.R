@@ -35,3 +35,23 @@ daysoverTruns <- function(t) {
   }
   return(doy)
 }
+
+# Effective precipitation methods
+ep_cropwat <- function(x) {
+	if(x <= 250) {
+		ep <- x*(125-0.2*x)/125
+	} else {
+		ep <- 125+0.1*x
+	}
+}
+ep_usda_simplified <- function(x) { #semi-arid
+	ep <- 1.9443*(x^0.82416) - 4.56 #1.9443*(x^0.82416) - 4.56
+}
+ep_fao <- function(x) {
+	if(x <= 70) {
+		ep <- 0.6*x - 10
+	} else {
+		ep <- 0.8*x - 25
+	}
+}
+
