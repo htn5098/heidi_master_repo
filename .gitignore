@@ -12,3 +12,5 @@ job*.pbs
 *.RData
 /src/jobs/sample_codes/
 /src/wget_scripts/
+/src/jobs/archive_outputs
+/src/jobs/log_files
