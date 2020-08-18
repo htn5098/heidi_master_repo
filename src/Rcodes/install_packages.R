@@ -11,7 +11,8 @@ req.packages <- c("googledrive",
                   "dplyr",
                   "foreach",
                   "doParallel",
-                  "filematrix")
+                  "filematrix",
+				  "SPEI")
 
 installed <- installed.packages()
 
