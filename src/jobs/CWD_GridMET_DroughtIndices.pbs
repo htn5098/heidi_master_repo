@@ -1,0 +1,70 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=1
+#PBS -l pmem=2gb
+#PBS -l walltime=02:00:00
+#PBS -A open
+#PBS -j oe
+#PBS -N GMET_drght #MACA GCM downloaded from GridMET 
+
+# Loading modules
+module purge
+module load r
+module load gcc/5.3.1
+module load parallel/20170522
+
+# Export to a tmp folder with more space
+if test -d "/storage/home/htn5098/scratch/tmpBigdata" 
+then
+  echo "Folder exists"
+else
+  mkdir -p /storage/home/htn5098/scratch/tmpBigdata
+  echo "Folder created"
+fi
+
+export TMPDIR=/storage/home/htn5098/scratch/tmpBigdata #to avoid running out of space when running jobs in parallel
+echo "Job started on `hostname` at `date`"
+START=$(date +%s)
+
+# Go to the directory
+cd /storage/home/htn5098/work/DataAnalysis/src/jobs/
+
+# Information of GCM, period and variable
+var=(pr pet) # change names to wanted climate variables 
+rawpath=/storage/home/htn5098/scratch/DataAnalysis/data/raw/GridMET_historical
+interimpath=/storage/home/htn5098/scratch/DataAnalysis/data/interim
+method=(ep_cropwat ep_usda_simplified ep_fao)
+#dur=(3 6 12 24 48)
+
+# Removing downloaded files that has size 0 (0gb files are usually due to error in connection when downloading)
+find $rawpath -size 0 -delete
+
+# Download GridMET historical data
+one=`qsub -v "var=${var[@]},rawpath=$rawpath" CWD_GridMET_download.pbs`
+oneID=`echo $one | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
+echo $one
+
+# Extract relevant climate variables from .nc file
+two=`qsub -v "var=${var[@]},rawpath=$rawpath,interimpath=$interimpath" CWD_GridMET_extract.pbs -W depend=afterok:$oneID` 
+twoID=`echo $two | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
+echo $two
+
+# Aggregating variable to the county level
+three=`qsub -v "var=${var[@]},interimpath=$interimpath" CWD_GridMET_var_aggr.pbs -W depend=afterok:$twoID` 
+threeID=`echo $three | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
+echo $three
+
+# Estimating effective precipitation
+four=`qsub -v "method=${method[@]},interimpath=$interimpath" CWD_GridMET_epcal.pbs -W depend=afterok:$threeID` 
+fourID=`echo $four | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
+echo $four
+
+# # Estimating SPEI/SPI
+# five=`qsub -v "interimpath=$interimpath,method=${method[@]},dur=${dur[@]}" CWD_MACA_pldcal.pbs -W depend=afterok:$fourID`
+# fiveID=`echo $five | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
+# echo $five
+
+echo "Job ended `date`"
+END=$(date +%s)
+sec=$((END-START))
+min=$((sec/60))
+echo "Time elapsed: $min minutes"

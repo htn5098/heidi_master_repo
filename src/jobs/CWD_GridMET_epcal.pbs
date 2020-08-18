@@ -1,0 +1,37 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=8
+#PBS -l pmem=16gb
+#PBS -l walltime=02:00:00
+#PBS -A open
+#PBS -j oe
+#PBS -N GMET_epcal #Calculating EP from historical GridMET pr 
+
+# Loading modules
+module purge
+module load r
+module load gcc/5.3.1
+module load parallel/20170522
+
+# Export to a tmp folder with more space
+export TMPDIR=/storage/home/htn5098/scratch/tmpBigdata #to avoid running out of space when running jobs in parallel
+
+echo "Job started on `hostname` at `date`"
+START=$(date +%s)
+
+# Go to the directory
+cd /storage/home/htn5098/work/DataAnalysis/src/jobs/
+
+# Variable and method for effective rainfall
+var=pr 
+interimpath=$interimpath
+method=${method[@]}
+
+#parallel --jobs 1 Rscript ../Rcodes/CWD_GridMET_EffPrecip_estimation.R $interimpath $threshold $threshold2 $gcm ::: ${period[@]}
+
+parallel Rscript ../Rcodes/CWD_GridMET_EffPrecip_estimation.R $interimpath $var ::: ${method[@]}
+
+echo "Job ends at `date`"
+END=$(date +%s)
+sec=$((END-START))
+min=$((sec/60))
+echo "Time elapsed: $min minutes"
