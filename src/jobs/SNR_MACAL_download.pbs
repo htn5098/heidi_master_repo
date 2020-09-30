@@ -1,0 +1,88 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=8
+#PBS -l pmem=15gb
+#PBS -l walltime=02:00:00
+#PBS -A open
+#PBS -j oe
+#PBS -N MACAL_dl #Historical data downloaded from GridMET 
+
+# Loading modules
+module purge
+module load r
+module load gcc/5.3.1
+module load parallel/20170522
+
+# Export to a tmp folder with more space
+export TMPDIR=/storage/home/htn5098/scratch/tmpBigdata #to avoid running out of space when running jobs in parallel
+
+echo "Job started on `hostname` at `date`"
+START=$(date +%s)
+
+# Go to the directory
+cd /storage/home/htn5098/work/DataAnalysis/src/jobs/
+
+# Information of GCM, period and variable
+gcm=$gcm 
+period=${period[@]} 
+var=${var[@]} 
+rawpath=$rawpath 
+
+# Creating helper functions
+function wget_create () {
+  rawpath=$1
+  gcm=$2
+  finder=${gcm}_
+  period=$3
+  var=$4
+  echo "Creating wget script for $gcm $period $var"
+  if test -f "../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh"
+  then
+    rm ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
+  fi
+	touch ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
+	echo "#!/bin/bash" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
+	echo "cd $rawpath" >> ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
+	awk -v gcm=$finder -v period=$period -v var=$var '$0~gcm && $0~period && $0~var {print}' ../wget_scripts/macav2livneh_allGCM_temppr_allperiod_monthly_wget.sh >> ../wget_scripts/MACAL_${gcm}_${period}_${var}_download.sh
+}
+function bash_wget () {
+  rawpath=$1
+  gcm=$2
+	period=$3
+	var=$4
+  echo "Start downloading $gcm $period $var"
+  bash ../wget_scripts/GridMET_${gcm}_${period}_${var}_download.sh
+}
+function check_file () {
+  rawpath=$1
+  gcm=$2
+  finder=${gcm}_
+	period=$3
+	var=$4
+  cd $rawpath
+  printf "\n Downloaded files for $gcm $period $var \n"
+  ls -l | awk -v gcm=$finder -v period=$period -v var=$var '$0~gcm && $0~period && $0~var {print $5, $9}' 
+  printf "\n" 
+}
+export -f wget_create
+export -f bash_wget
+export -f check_file
+
+# Removing downloaded files that has size 0
+find $rawpath -size 0 -delete
+
+# Hello, this works
+
+# Creating a download script for multiple years for the GCM, periods and variables selected
+parallel wget_create $rawpath $gcm ::: ${period[@]} ::: ${var[@]}
+wait
+parallel --jobs 2 bash_wget $rawpath $gcm ::: ${period[@]} ::: ${var[@]}
+wait 
+
+# Checking all the downloaded files
+parallel check_file $rawpath $gcm ::: ${period[@]} ::: ${var[@]} > Checkfile_${gcm}_download.txt
+
+echo "Job ended `date`"
+END=$(date +%s)
+sec=$((END-START))
+min=$((sec/60))
+echo "Time elapsed: $min minutes"
