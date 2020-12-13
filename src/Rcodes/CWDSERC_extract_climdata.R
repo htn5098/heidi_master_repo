@@ -35,12 +35,12 @@ if (file.exists(paste0(outname,'.bmat')) & file.exists(paste0(outname,'.desc.txt
   cat('\nFile already exists\n')
 } else {
   cat("\nStart of extracting data\n")
-  url <- read.table('./data/external/MACAV2_OPENDAP_allvar_allgcm_allperiod.txt',header=T)
-  links <- grep(x = url,pattern = paste0('.*',var,'.*',gcm,'_.*',period), 
-                   full.names = T) 
-  print(links)
-  spfile <- read.table('./data/external/SERC_MACAV2_Elev.csv',header = T)
+  url <- readLines('./data/external/MACAV2_OPENDAP_allvar_allgcm_allperiod.txt')
+  links <- grep(x = url,pattern = paste0('.*',var,'.*',gcm,'_.*',period), value = T) 
+  spfile <- read.csv('./data/external/SERC_MACAV2_Elev.csv',header = T)
   grids <- sort(unique(spfile$Grid))
+  start=c(659,93,1) # lon, lat, time
+  count=c(527,307,-1)
   invisible(clusterEvalQ(cl,.libPaths("/storage/home/htn5098/local_lib/R35"))) # Really have to import library paths into the workers
   clusterExport(cl,list('ncarray2matrix','start','count','grids')) #exporting data into clusters for parallel processing
   varMatrix <- foreach(i = links,.packages=c('ncdf4'),.combine = rbind) %dopar% {
@@ -48,15 +48,15 @@ if (file.exists(paste0(outname,'.bmat')) & file.exists(paste0(outname,'.desc.txt
                        nc.var=ncvar_get(nc,varid=names(nc$var),start=start,count=count)
                        varData=ncarray2matrix(nc.var)
 					   varMtr=varData[,grids]
-                       colnames(varMatr) <- as.character(grids)
+                       colnames(varMtr) <- as.character(grids)
 					   ind <- which(colSums(is.na(varMtr)) != 0)
-					   varMatr[,ind] <- 0 # setting missing grid to value of 0
-					   return(varMatr)
+					   varMtr[,ind] <- 0 # setting missing grid to value of 0
+					   return(varMtr)
                      }
   cat("\nDimensions of the file",dim(varMatrix),'\n')
   print(head(varMatrix[,1:5]))
-  #output = fm.create.from.matrix(outname,matrix.var)
-  #close(output)
+  output = fm.create.from.matrix(outname,varMatrix)
+  close(output)
   print("\nEnd of extracting data\n")
 }
 

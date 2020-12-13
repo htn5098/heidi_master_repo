@@ -1,6 +1,6 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=8
-#PBS -l pmem=30gb
+#PBS -l nodes=1:ppn=15
+#PBS -l pmem=10gb
 #PBS -l walltime=02:00:00
 #PBS -A cxc693_a_t_sc_default
 #PBS -j oe
@@ -13,7 +13,7 @@ module load gcc/5.3.1
 module load parallel/20170522
 
 # Export to a tmp folder with more space
-ulimit -u 10000
+ulimit -u unlimited
 export TMPDIR=/storage/home/htn5098/scratch/tmpBigdata #to avoid running out of space when running jobs in parallel
 
 echo "Job started on `hostname` at `date`"
@@ -23,20 +23,18 @@ START=$(date +%s)
 cd /storage/home/htn5098/work/DataAnalysis/src/jobs/
 
 # Information of GCM, period and variable
-gcm=bcc-csm1-1 #$gcm
+gcm=BNU-ESM #$gcm
 period=historical #$period
 interimpath=/storage/home/htn5098/scratch/DataAnalysis/data/interim/ #$interimpath
 # source=$source
-var=tasmax #(tasmin rhsmax rhsmin) #uas vas rsds pr
+var=(tasmax tasmin rhsmax rhsmin uas vas rsds) # pr
 # yearstart=$yearstart
 # yearend=$yearend
 # chunk=$PBS_ARRAYID
 
-# echo $gcm $period $yearstart $yearend $interimpath $source $chunk
-
 #Rscript ../Rcodes/CWDSERC_extract_climdata.R $gcm $period $yearstart $yearend $interimpath $source $chunk
 
-Rscript ../Rcodes/CWDSERC_extract_climdata.R $interimpath $gcm $period $var
+parallel --jobs 2 Rscript ../Rcodes/CWDSERC_extract_climdata.R $interimpath $gcm $period ::: ${var[@]}
 
 echo "Extracting ends at `date`"
 END=$(date +%s)
