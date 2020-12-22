@@ -1,0 +1,63 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=1 
+#PBS -l pmem=2gb
+#PBS -l walltime=02:00:00
+#PBS -A open
+#PBS -j oe
+#PBS -N CWD_ETO #MACA GCM downloaded from GridMET 
+
+# Loading modules
+module purge
+module load r
+module load gcc/5.3.1
+module load parallel/20170522
+
+# Export to a tmp folder with more space
+if test -d "/storage/home/htn5098/scratch/tmpBigdata" 
+then
+  echo "Folder exists"
+else
+  mkdir -p /storage/home/htn5098/scratch/tmpBigdata
+  echo "Folder created"
+fi
+
+export TMPDIR=/storage/home/htn5098/scratch/tmpBigdata #to avoid running out of space when running jobs in parallel
+echo "Job started on `hostname` at `date`"
+START=$(date +%s)
+
+# Go to the directory
+cd /storage/home/htn5098/work/DataAnalysis/src/jobs/
+
+# Information of GCM, period and variable
+gcm=`awk -v line=$line 'NR==line {print $1}' ../../data/external/MACA_GCMs.txt` # reading the name of the GCM from a .txt file
+echo "Processing for $gcm"
+period=(historical rcp45 rcp85) #change names to wanted period
+interimpath=/storage/home/htn5098/scratch/DataAnalysis/data/interim
+for i in "${period[@]}"
+do
+	# Extract relevant climate variables from .nc file
+	one=`qsub -v "gcm=$gcm,period=$i,interimpath=$interimpath" CWDSERC_extract_data.pbs` 
+	oneID=`echo $one | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
+	echo $oneID
+	
+	# Intermediate steps for vpd, Rns, clearsky ratio
+	two=`qsub -v "gcm=$gcm,period=$i,interimpath=$interimpath" CWDSERC_rns.pbs -W depend=afterok:$oneID` 
+	twoID=`echo $two | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
+	echo $two
+	three=`qsub -v "gcm=$gcm,period=$i,interimpath=$interimpath" CWDSERC_vpd.pbs -W depend=afterok:$oneID`
+	threeID=`echo $three | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
+	echo $three
+	
+	# Calculate ETo 
+	four=`qsub -v "gcm=$gcm,period=$i,interimpath=$interimpath" CWDSERC_eto_cal.pbs -W depend=afterok:$twoID:$threeID`
+	fourID=`echo $four | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
+	echo $four
+	
+	sleep 3m # let the system rest for 5 minutes before running the next loop
+done
+
+echo "Job ended `date`"
+END=$(date +%s)
+sec=$((END-START))
+min=$((sec/60))
+echo "Time elapsed: $sec seconds"
