@@ -1,0 +1,79 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=8
+#PBS -l pmem=15gb
+#PBS -l walltime=02:00:00
+#PBS -A cxc693_a_t_sc_default
+#PBS -j oe
+#PBS -N GMET_dl #Historical data downloaded from GridMET 
+
+# Loading modules
+module purge
+module load r
+module load gcc/5.3.1
+module load parallel/20170522
+
+# Export to a tmp folder with more space
+export TMPDIR=/storage/home/htn5098/scratch/tmpBigdata #to avoid running out of space when running jobs in parallel
+
+echo "Job started on `hostname` at `date`"
+START=$(date +%s)
+
+# Go to the directory
+cd /storage/home/htn5098/work/DataAnalysis/src/jobs/
+
+# Information of GridMET historical variable
+var=$var 
+rawpath=$rawpath 
+
+# Creating helper functions
+function wget_create () {
+  rawpath=$1
+  var=$2
+  echo "Creating wget script for GridMET historical $var"
+  if test -f "../wget_scripts/GridMET_hist_${var}_download.sh"
+  then
+    rm ../wget_scripts/GridMET_hist_${var}_download.sh
+  fi
+	touch ../wget_scripts/GridMET_hist_${var}_download.sh
+	echo "#!/bin/bash" >> ../wget_scripts/GridMET_hist_${var}_download.sh
+	echo "cd $rawpath" >> ../wget_scripts/GridMET_hist_${var}_download.sh
+	awk -v var=$var '$0~var {print}' ../wget_scripts/gridmet_allvar_allyear_wget.sh >> ../wget_scripts/GridMET_hist_${var}_download.sh
+}
+
+function bash_wget () {
+  rawpath=$1
+  var=$2
+  echo "Start downloading GridMET historical $var"
+  bash ../wget_scripts/GridMET_hist_${var}_download.sh
+}
+function check_file () {
+  rawpath=$1
+  var=$2
+  cd $rawpath
+  printf "\n Downloaded files for GridMET historical $var \n"
+  ls -l | awk -v var=$var '$0~var {print $5, $9}' 
+  printf "\n" 
+}
+export -f wget_create
+export -f bash_wget
+export -f check_file
+
+# Removing downloaded files that has size 0
+find $rawpath -size 0 -delete
+
+# Hello, this works
+
+# Creating a download script for multiple years for the GCM, periods and variables selected
+wget_create $rawpath $var
+wait
+bash_wget $rawpath $var
+wait 
+
+# Checking all the downloaded files
+check_file $rawpath $var > Checkfile_hist_${var}_download.txt
+
+echo "Job ended `date`"
+END=$(date +%s)
+sec=$((END-START))
+min=$((sec/60))
+echo "Time elapsed: $min minutes"

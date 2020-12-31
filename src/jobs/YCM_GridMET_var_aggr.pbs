@@ -1,0 +1,34 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=8
+#PBS -l pmem=16gb
+#PBS -l walltime=02:00:00
+#PBS -A cxc693_a_t_sc_default
+#PBS -j oe
+#PBS -N GMET_aggr #Aggregating precipitation from historical GridMET pr 
+
+# Loading modules
+module purge
+module load r
+module load gcc/5.3.1
+module load parallel/20170522
+
+# Export to a tmp folder with more space
+export TMPDIR=/storage/home/htn5098/scratch/tmpBigdata #to avoid running out of space when running jobs in parallel
+
+echo "Job started on `hostname` at `date`"
+START=$(date +%s)
+
+# Go to the directory
+cd /storage/home/htn5098/work/DataAnalysis/src/jobs/
+
+# Information of GCM, period and variable
+var=$var 
+interimpath=$interimpath
+
+Rscript ../Rcodes/YCM_GridMET_var_aggregation.R $interimpath $var
+
+echo "Aggregation ends at `date`"
+END=$(date +%s)
+sec=$((END-START))
+min=$((sec/60))
+echo "Time elapsed: $sec seconds"
