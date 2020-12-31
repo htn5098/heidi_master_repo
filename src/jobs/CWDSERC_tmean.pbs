@@ -1,10 +1,10 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=20
+#PBS -l nodes=1:ppn=10
 #PBS -l pmem=25gb
 #PBS -l walltime=02:00:00
 #PBS -A open
 #PBS -j oe
-#PBS -N MACAV2_cal #MACAV2 GCM processing for ETo calcualtion
+#PBS -N MACAV2_tmean #MACAV2 GCM processing for ETo calcualtion
 
 # Loading modules
 module purge
@@ -33,7 +33,7 @@ interimpath=/storage/home/htn5098/scratch/DataAnalysis/data/interim/ #$interimpa
 
 #Rscript ../Rcodes/CWDSERC_extract_climdata.R $gcm $period $yearstart $yearend $interimpath $source $chunk
 
-Rscript ../Rcodes/CWDSERC_ret_cal.R $interimpath $gcm $period 
+Rscript ../Rcodes/CWDSERC_tmean.R $interimpath $gcm $period 
 
 echo "Calculating ETO ends at `date`"
 END=$(date +%s)
