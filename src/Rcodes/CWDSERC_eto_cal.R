@@ -57,8 +57,6 @@ if (file.exists(paste0(outname,'.bmat')) & file.exists(paste0(outname,'.desc.txt
 	
 	# clusterExport(cl,list('grids')) #exporting data into clusters for parallel processing
 	
-	slope.svp <- fm.load(paste0(interimpath,'/interim_', source,'_',gcm,'_',period,'_slopesvp_Matrix')) # unit: kPa/oC
-	
 	# Constant values
 	Cn = 900 # unit: K mm s3Mg−1d−1
 	Cd = 0.34 # unit: s m-1

@@ -19,6 +19,8 @@ aggr_data <- function(gridpoint,county,data) {
   if(is.null(dim(var))) {
     aggr = 0
   } else { 
+	ind <- which(colSums(is.na(var)) != 0)
+	var[,ind] <- 0	
     aggr <- var%*%wt #apply(var,1,weighted.mean,w = wt,na.rm = T)
   }
   return(aggr)
@@ -55,3 +57,8 @@ ep_fao <- function(x) {
 	}
 }
 
+# Saturation vapor pressure
+sat.vp.fucn = function(t) { # calculating saturation vapor pressure at ToC
+  svp = 0.6108*exp(17.27*t/(t+237.3))
+  return(svp)
+}
