@@ -1,16 +1,12 @@
 #!/bin/bash
-#PBS -l nodes=1:ppn=20
-#PBS -l pmem=30gb
 #PBS -l walltime=04:00:00
-#PBS -A open
+#PBS -A cxc693_b_g_hc_default
 #PBS -j oe
-#PBS -N MACAV2_extr #MACAV2 GCM processing for ETo calcualtion
 
 # Loading modules
 module purge
-module load r
-module load gcc/5.3.1
-module load parallel/20170522
+module load gcc/8.3.1
+module load parallel/20190222
 
 # cxc693_a_t_sc_default
 
@@ -30,9 +26,7 @@ period=$period #historical
 interimpath=$interimpath #/storage/home/htn5098/scratch/DataAnalysis/data/interim/ 
 # source=$source
 var=(tasmax tasmin rhsmax rhsmin uas vas rsds pr) 
-# yearstart=$yearstart
-# yearend=$yearend
-# chunk=$PBS_ARRAYID
+
 
 #Rscript ../Rcodes/CWDSERC_extract_climdata.R $gcm $period $yearstart $yearend $interimpath $source $chunk
 

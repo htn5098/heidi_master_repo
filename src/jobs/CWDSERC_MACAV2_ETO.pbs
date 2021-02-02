@@ -2,15 +2,15 @@
 #PBS -l nodes=1:ppn=1 
 #PBS -l pmem=2gb
 #PBS -l walltime=02:00:00
-#PBS -A open
+#PBS -l feature=rhel7
+#PBS -A cxc693_b_g_hc_default
 #PBS -j oe
 #PBS -N CWD_ETO #MACA GCM downloaded from GridMET 
 
 # Loading modules
 module purge
-module load r
-module load gcc/5.3.1
-module load parallel/20170522
+module load gcc/8.3.1
+module load parallel/20190222
 
 # Export to a tmp folder with more space
 if test -d "/storage/home/htn5098/scratch/tmpBigdata" 
@@ -36,24 +36,34 @@ interimpath=/storage/home/htn5098/scratch/DataAnalysis/data/interim
 for i in "${period[@]}"
 do
 	# Extract relevant climate variables from .nc file
-	one=`qsub -v "gcm=$gcm,period=$i,interimpath=$interimpath" CWDSERC_extract_data.pbs` 
+	one=`qsub -l nodes=1:ppn=20 -l pmem=50gb -N MACAV2_extr -v "gcm=$gcm,period=$i,interimpath=$interimpath" CWDSERC_extract_data.pbs -l feature=rhel7` 
 	oneID=`echo $one | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
-	echo $oneID
+	echo $one
 	
 	# Intermediate steps for vpd, Rns, clearsky ratio
-	two=`qsub -v "gcm=$gcm,period=$i,interimpath=$interimpath" CWDSERC_rns.pbs -W depend=afterok:$oneID` 
+	two=`qsub -l nodes=1:ppn=10 -l pmem=25gb -N MACAV2_vpd -v "gcm=$gcm,period=$i,interimpath=$interimpath" CWDSERC_rns.pbs -W depend=afterok:$oneID -l feature=rhel7` 
 	twoID=`echo $two | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
 	echo $two
-	three=`qsub -v "gcm=$gcm,period=$i,interimpath=$interimpath" CWDSERC_vpd.pbs -W depend=afterok:$oneID`
+	three=`qsub -l nodes=1:ppn=10 -l pmem=25gb -N MACAV2_rns -v "gcm=$gcm,period=$i,interimpath=$interimpath" CWDSERC_vpd.pbs -W depend=afterok:$oneID -l feature=rhel7`
 	threeID=`echo $three | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
 	echo $three
 	
 	# Calculate ETo 
-	four=`qsub -v "gcm=$gcm,period=$i,interimpath=$interimpath" CWDSERC_eto_cal.pbs -W depend=afterok:$twoID:$threeID`
+	four=`qsub -l nodes=1:ppn=10 -l pmem=35gb -N MACAV2_eto -v "gcm=$gcm,period=$i,interimpath=$interimpath" CWDSERC_eto_cal.pbs -W depend=afterok:$twoID:$threeID -l feature=rhel7`
 	fourID=`echo $four | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
 	echo $four
 	
-	sleep 3m # let the system rest for 5 minutes before running the next loop
+	# Aggregate gridded ETo to monthly level
+	five=`qsub -l nodes=1:ppn=10 -l pmem=40gb -N MACAV2_gagg -v "gcm=$gcm,period=$i,interimpath=$interimpath" CWDSERC_eto_grid_summary.pbs -W depend=afterok:$fourID -l feature=rhel7` 
+	fiveID=`echo $five | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
+	echo $five
+	
+	# # Aggregate gridded ETo to monthly level
+	# six=`qsub -v "gcm=$gcm,period=$i,interimpath=$interimpath" CWDSERC_eto_county_summary.pbs -W depend=afterok:$fiveID -l feature=rhel7` #-W depend=afterok:$fourID
+	# sixID=`echo $six | awk 'match($0,/[0-9]+/){print substr($0, RSTART, RLENGTH)}'`
+	# echo $six
+	
+	#sleep 3m # let the system rest for 3 minutes before running the next loop
 done
 
 echo "Job ended `date`"
