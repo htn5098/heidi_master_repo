@@ -37,7 +37,7 @@ if (file.exists(paste0(outname,'.bmat')) & file.exists(paste0(outname,'.desc.txt
   cat("\nStart of extracting data\n")
   url <- readLines('./data/external/MACAV2_OPENDAP_allvar_allgcm_allperiod.txt')
   links <- grep(x = url,pattern = paste0('.*',var,'.*',gcm,'_.*',period), value = T) 
-  #print(links)
+  # print(links)
   spfile <- read.csv('./data/external/SERC_MACAV2_Elev.csv',header = T)
   grids <- sort(unique(spfile$Grid))
   start=c(659,93,1) # lon, lat, time
